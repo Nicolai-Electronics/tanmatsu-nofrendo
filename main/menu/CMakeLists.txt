@@ -1,0 +1,20 @@
+idf_component_register(
+    SRCS
+        "src/charData.c"
+        "src/charPixels.c"
+        "src/decode_image.c"
+        "src/iconData.c"
+        "src/menu.c"
+        "src/pretty_effect.c"
+    INCLUDE_DIRS
+        "src"
+        "../../../"
+    PRIV_REQUIRES
+        badge-bsp
+        esp_driver_gpio
+        esp_driver_jpeg
+        esp_event
+        esp_hw_support
+        esp_partition
+        nvs_flash
+)

@@ -1,0 +1,106 @@
+
+idf_component_register(
+	SRCS
+		"main.c"
+		"led.c"
+
+        "menu/src/charData.c"
+        "menu/src/charPixels.c"
+        "menu/src/decode_image.c"
+        "menu/src/iconData.c"
+        "menu/src/menu.c"
+        "menu/src/pretty_effect.c"
+
+        "nofrendo/src/bitmap.c"
+        "nofrendo/src/config.c"
+        "nofrendo/src/event.c"
+        "nofrendo/src/gui.c"
+        "nofrendo/src/gui_elem.c"
+        "nofrendo/src/intro.c"
+        "nofrendo/src/log.c"
+        "nofrendo/src/memguard.c"
+        "nofrendo/src/nofrendo.c"
+        "nofrendo/src/pcx.c"
+        "nofrendo/src/vid_drv.c"
+
+        "nofrendo/src/nes/mmclist.c"
+        "nofrendo/src/nes/nes_mmc.c"
+        "nofrendo/src/nes/nes_pal.c"
+        "nofrendo/src/nes/nes_ppu.c"
+        "nofrendo/src/nes/nes_rom.c"
+        "nofrendo/src/nes/nes.c"
+        "nofrendo/src/nes/nesinput.c"
+        "nofrendo/src/nes/nesstate.c"
+
+        "nofrendo/src/sndhrdw/fds_snd.c"
+        "nofrendo/src/sndhrdw/mmc5_snd.c"
+        "nofrendo/src/sndhrdw/nes_apu.c"
+        "nofrendo/src/sndhrdw/vrcvisnd.c"
+
+        "nofrendo/src/libsnss/libsnss.c"
+
+        "nofrendo/src/esp32/osd.c"
+        "nofrendo/src/esp32/spi_lcd.c"
+        "nofrendo/src/esp32/video_audio.c"
+
+        "nofrendo/src/cpu/dis6502.c"
+        "nofrendo/src/cpu/nes6502.c"
+
+        "nofrendo/src/mappers/map000.c"
+        "nofrendo/src/mappers/map001.c"
+        "nofrendo/src/mappers/map002.c"
+        "nofrendo/src/mappers/map003.c"
+        "nofrendo/src/mappers/map004.c"
+        "nofrendo/src/mappers/map005.c"
+        "nofrendo/src/mappers/map007.c"
+        "nofrendo/src/mappers/map008.c"
+        "nofrendo/src/mappers/map009.c"
+        "nofrendo/src/mappers/map011.c"
+        "nofrendo/src/mappers/map015.c"
+        "nofrendo/src/mappers/map016.c"
+        "nofrendo/src/mappers/map018.c"
+        "nofrendo/src/mappers/map019.c"
+        "nofrendo/src/mappers/map024.c"
+        "nofrendo/src/mappers/map032.c"
+        "nofrendo/src/mappers/map033.c"
+        "nofrendo/src/mappers/map034.c"
+        "nofrendo/src/mappers/map040.c"
+        "nofrendo/src/mappers/map041.c"
+        "nofrendo/src/mappers/map042.c"
+        "nofrendo/src/mappers/map046.c"
+        "nofrendo/src/mappers/map050.c"
+        "nofrendo/src/mappers/map064.c"
+        "nofrendo/src/mappers/map065.c"
+        "nofrendo/src/mappers/map066.c"
+        "nofrendo/src/mappers/map070.c"
+        "nofrendo/src/mappers/map073.c"
+        "nofrendo/src/mappers/map075.c"
+        "nofrendo/src/mappers/map078.c"
+        "nofrendo/src/mappers/map079.c"
+        "nofrendo/src/mappers/map085.c"
+        "nofrendo/src/mappers/map087.c"
+        "nofrendo/src/mappers/map093.c"
+        "nofrendo/src/mappers/map094.c"
+        "nofrendo/src/mappers/map099.c"
+        "nofrendo/src/mappers/map160.c"
+        "nofrendo/src/mappers/map229.c"
+        "nofrendo/src/mappers/map231.c"
+        "nofrendo/src/mappers/mapvrc.c"
+	PRIV_REQUIRES
+		badge-bsp
+		esp_driver_jpeg
+		esp_driver_gpio
+		esp_event
+		esp_lcd
+		fatfs
+		nvs_flash
+	INCLUDE_DIRS
+		"."
+		"menu/src"
+		"nofrendo/src"
+		"nofrendo/src/nes"
+		"nofrendo/src/sndhrdw"
+		"nofrendo/src/libsnss"
+		"nofrendo/src/esp32"
+		"nofrendo/src/cpu"
+)
