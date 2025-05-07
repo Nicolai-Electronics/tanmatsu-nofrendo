@@ -2,6 +2,7 @@
 idf_component_register(
 	SRCS
 		"main.c"
+        "sdcard.c"
 		"led.c"
 
         "menu/src/charData.c"
@@ -88,12 +89,15 @@ idf_component_register(
         "nofrendo/src/mappers/mapvrc.c"
 	PRIV_REQUIRES
 		badge-bsp
-		esp_driver_jpeg
 		esp_driver_gpio
+		esp_driver_jpeg
 		esp_event
 		esp_lcd
 		fatfs
 		nvs_flash
+        esp_driver_ppa
+        esp_partition
+        spi_flash
 	INCLUDE_DIRS
 		"."
 		"menu/src"

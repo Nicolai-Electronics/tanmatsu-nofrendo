@@ -17,7 +17,7 @@ Keep in mind that the decoder library cannot handle progressive files (will give
 format if you want to use a different image file.
 */
 
-#include "decode_image.h"
+#include <decode_image.h>
 #include <string.h>
 // #include "driver/jpeg_decode.h"
 
