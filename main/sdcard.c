@@ -112,17 +112,7 @@ esp_err_t registerSdCard()
 
 char* osd_getromdata()
 {
-    char*                   romdata;
-    spi_flash_mmap_handle_t handle;
-    esp_err_t               err;
-
-    // Locate our target ROM partition where the file will be loaded
-    const esp_partition_t* part = esp_partition_find_first(
-        ESP_PARTITION_TYPE_DATA,
-        0xFF,
-        "rom");
-    if (part == 0)
-        printf("Couldn't find rom partition!\n");
+    char* romdata;
 
     // Open the file
     printf("Reading rom from %s\n", selectedRomFilename);

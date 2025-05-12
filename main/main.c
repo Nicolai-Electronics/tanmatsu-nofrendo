@@ -22,7 +22,8 @@
 // #include "esp_partition.h"
 #include "led.h"
 // #include "menu/src/menu.h"
-#include "nofrendo/src/nofrendo.h"
+// #include "nofrendo/src/nofrendo.h"
+#include <nofrendo.h>
 // #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 // #include "sdmmc_cmd.h"
 // #include "spi_flash_mmap.h"
@@ -34,10 +35,10 @@
 static char* const TAG = "main";
 
 // Global variables
-static esp_lcd_panel_handle_t       display_lcd_panel    = NULL;
-static esp_lcd_panel_io_handle_t    display_lcd_panel_io = NULL;
-static size_t                       display_h_res        = 0;
-static size_t                       display_v_res        = 0;
+static esp_lcd_panel_handle_t       display_lcd_panel = NULL;
+// static esp_lcd_panel_io_handle_t    display_lcd_panel_io = NULL;
+static size_t                       display_h_res     = 0;
+static size_t                       display_v_res     = 0;
 static lcd_color_rgb_pixel_format_t display_color_format;
 static pax_buf_t                    fb                = {0};
 static QueueHandle_t                input_event_queue = NULL;
@@ -87,9 +88,9 @@ int app_main(void)
 
     // Fetch the handle for using the screen, this works even when
     res = bsp_display_get_panel(&display_lcd_panel);
-    ESP_ERROR_CHECK(res);                            // Check that the display handle has been initialized
-    bsp_display_get_panel_io(&display_lcd_panel_io); // Do not check result of panel IO handle: not all types of
-                                                     // display expose a panel IO handle
+    ESP_ERROR_CHECK(res); // Check that the display handle has been initialized
+    // bsp_display_get_panel_io(&display_lcd_panel_io); // Do not check result of panel IO handle: not all types of
+    //                                                  // display expose a panel IO handle
     res = bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format);
     ESP_ERROR_CHECK(res); // Check that the display parameters have been initialized
 
@@ -107,8 +108,8 @@ int app_main(void)
     pax_buf_reversed(&fb, false);
     pax_buf_set_orientation(&fb, PAX_O_ROT_CW);
 
-    pax_background(&fb, 0xFFFFFFFF);
-    pax_draw_text(&fb, 0xFF000000, pax_font_sky_mono, 16, 0, 0, "Hello world!");
+    pax_background(&fb, 0xFF000000);
+    pax_draw_text(&fb, 0xFFFFFFFF, pax_font_sky_mono, 16, 0, 0, "Hello world!");
     blit();
 
 #ifndef SKIP_MENU

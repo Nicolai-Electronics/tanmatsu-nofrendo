@@ -41,7 +41,7 @@ idf_component_register(
         "nofrendo/src/libsnss/libsnss.c"
 
         "nofrendo/src/esp32/osd.c"
-        "nofrendo/src/esp32/spi_lcd.c"
+        "nofrendo/src/esp32/mipi_gfx.c"
         "nofrendo/src/esp32/video_audio.c"
 
         "nofrendo/src/cpu/dis6502.c"

@@ -1,11 +1,11 @@
-#ifndef PSXCONTROLLER_H
-#define PSXCONTROLLER_H
+#pragma once
 
-int psxReadInput();
+#include <stdbool.h>
+int  psxReadInput();
 void psxcontrollerInit();
 bool getShowMenu();
-int getBright();
-int getVolume();
+int  getBright();
+int  getVolume();
 bool getShutdown();
 bool isSelectPressed(int ctl);
 bool isStartPressed(int ctl);
@@ -21,7 +21,5 @@ bool isMenuPressed(int ctl);
 bool isPowerPressed(int ctl);
 bool isAnyPressed(int ctl);
 bool isAnyFirePressed(int ctl);
-int getTurboA();
-int getTurboB();
-
-#endif
+int  getTurboA();
+int  getTurboB();

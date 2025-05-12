@@ -4,14 +4,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -25,73 +25,70 @@
 */
 
 #include <limits.h>
-#ifndef  PATH_MAX
-#define  PATH_MAX    512
+#ifndef PATH_MAX
+#define PATH_MAX 512
 #endif /* PATH_MAX */
 
 #ifdef __GNUC__
-#define  __PACKED__  __attribute__ ((packed))
+#define __PACKED__ __attribute__((packed))
 
 #ifdef __DJGPP__
-#define  PATH_SEP    '\\'
+#define PATH_SEP '\\'
 #else /* !__DJGPP__ */
-#define  PATH_SEP    '/'
+#define PATH_SEP '/'
 #endif /* !__DJGPP__ */
 
 #elif defined(WIN32)
-#define  __PACKED__
-#define  PATH_SEP    '\\'
+#define __PACKED__
+#define PATH_SEP '\\'
 #else /* !defined(WIN32) && !__GNUC__ */
-#define  __PACKED__
-#define  PATH_SEP    ':'
+#define __PACKED__
+#define PATH_SEP ':'
 #endif /* !defined(WIN32) && !__GNUC__ */
 
 #if !defined(WIN32) && !defined(__DJGPP__)
 #define stricmp strcasecmp
 #endif /* !WIN32 && !__DJGPP__ */
 
-
-extern void osd_setsound(void (*playfunc)(void *buffer, int size));
-
+extern void osd_setsound(void (*playfunc)(void* buffer, int size));
 
 #ifndef NSF_PLAYER
-#include "noftypes.h"
 #include "vid_drv.h"
 
 typedef struct vidinfo_s
 {
-   int default_width, default_height;
-   viddriver_t *driver;
+    size_t       default_width, default_height;
+    viddriver_t* driver;
 } vidinfo_t;
 
 typedef struct sndinfo_s
 {
-   int sample_rate;
-   int bps;
+    int sample_rate;
+    int bps;
 } sndinfo_t;
 
 /* get info */
-extern void osd_getvideoinfo(vidinfo_t *info);
-extern void osd_getsoundinfo(sndinfo_t *info);
+extern void osd_getvideoinfo(vidinfo_t* info);
+extern void osd_getsoundinfo(sndinfo_t* info);
 
 /* init / shutdown */
-extern int osd_init(void);
+extern int  osd_init(void);
 extern void osd_shutdown(void);
-extern int osd_main(int argc, char *argv[]);
+extern int  osd_main(int argc, char* argv[]);
 
-extern int osd_installtimer(int frequency, void *func, int funcsize,
-                            void *counter, int countersize);
+extern int osd_installtimer(int frequency, void* func, int funcsize,
+                            void* counter, int countersize);
 
 /* filename manipulation */
-extern void osd_fullname(char *fullname, const char *shortname);
-extern char *osd_newextension(char *string, char *ext);
+extern void  osd_fullname(char* fullname, const char* shortname);
+extern char* osd_newextension(char* string, char* ext);
 
 /* input */
 extern void osd_getinput(void);
-extern void osd_getmouse(int *x, int *y, int *button);
+extern void osd_getmouse(int* x, int* y, int* button);
 
 /* build a filename for a snapshot, return -ve for error */
-extern int osd_makesnapname(char *filename, int len);
+extern int osd_makesnapname(char* filename, int len);
 
 #endif /* !NSF_PLAYER */
 

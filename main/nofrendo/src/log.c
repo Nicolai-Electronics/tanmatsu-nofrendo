@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -23,121 +23,124 @@
 ** $Id: log.c,v 1.2 2001/04/27 14:37:11 neil Exp $
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include "noftypes.h"
 #include "log.h"
 #include "esp_log.h"
+#include "noftypes.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-
-//static FILE *errorlog = NULL;
-static int (*log_func)(const char *string) = NULL;
+// static FILE *errorlog = NULL;
+static int (*log_func)(const char* string) = NULL;
 
 /* first up: debug versions of calls */
 #ifdef NOFRENDO_DEBUG
 int log_init(void)
 {
-//   errorlog = fopen("errorlog.txt", "wt");
-//   if (NULL == errorlog)
-//      return (-1);
+    //   errorlog = fopen("errorlog.txt", "wt");
+    //   if (NULL == errorlog)
+    //      return (-1);
 
-   return 0;
+    return 0;
 }
 
 void log_shutdown(void)
 {
-   /* Snoop around for unallocated blocks */
-   mem_checkblocks();
-   mem_checkleaks();
-   mem_cleanup();
+    /* Snoop around for unallocated blocks */
+    mem_checkblocks();
+    mem_checkleaks();
+    mem_cleanup();
 
-//   if (NULL != errorlog)
-//      fclose(errorlog);
+    //   if (NULL != errorlog)
+    //      fclose(errorlog);
 }
 
-int log_print(const char *string)
+int log_print(const char* string)
 {
-   /* if we have a custom logging function, use that */
-   if (NULL != log_func)
-      log_func(string);
-   
-   /* Log it to disk, as well */
-//   fputs(string, errorlog);
-//	printf("%s\n", string);
+    /* if we have a custom logging function, use that */
+    if (NULL != log_func)
+        log_func(string);
 
-   return 0;
+    /* Log it to disk, as well */
+    //   fputs(string, errorlog);
+    //	printf("%s\n", string);
+
+    return 0;
 }
 
-int log_printf(const char *format, ... )
+int log_printf(const char* format, ...)
 {
-   /* don't allocate on stack every call */
-   static char buffer[1024 + 1];
-   va_list arg;
+    /* don't allocate on stack every call */
+    static char buffer[1024 + 1];
+    va_list     arg;
 
-   va_start(arg, format);
+    va_start(arg, format);
 
-   if (NULL != log_func)
-   {
-      vsprintf(buffer, format, arg);
-      log_func(buffer);
-   }
+    if (NULL != log_func)
+    {
+        vsprintf(buffer, format, arg);
+        log_func(buffer);
+    }
 
-//   vfprintf(errorlog, format, arg);
-   va_end(arg);
+    //   vfprintf(errorlog, format, arg);
+    va_end(arg);
 
-   return 0; /* should be number of chars written */
+    return 0; /* should be number of chars written */
 }
 
-#else /* !NOFRENDO_DEBUG */
+#else  /* !NOFRENDO_DEBUG */
 
 int log_init(void)
 {
-   return 0;
+    return 0;
 }
 
 void log_shutdown(void)
 {
 }
 
-int log_print(const char *string)
+int log_print(const char* string)
 {
-   UNUSED(string);
+    UNUSED(string);
 
-   return 0;
+    return 0;
 }
 
-int log_printf(const char *format, ... )
+int log_printf(const char* format, ...)
 {
-   UNUSED(format);
+    // Rewrite this function to see some logging
+    // TODO: make inert in the future again.
+    va_list args;
+    va_start(args, format);
+    esp_log_writev(ESP_LOG_INFO, "LOG", format, args);
+    va_end(args);
 
-   return 0; /* should be number of chars written */
+    return 0; /* should be number of chars written */
 }
 #endif /* !NOFRENDO_DEBUG */
 
-void log_chain_logfunc(int (*func)(const char *string))
+void log_chain_logfunc(int (*func)(const char* string))
 {
-   log_func = func;
+    log_func = func;
 }
 
-void log_assert(int expr, int line, const char *file, char *msg)
+void log_assert(int expr, int line, const char* file, char* msg)
 {
-   if (expr)
-      return;
+    if (expr)
+        return;
 
-   if (NULL != msg)
-      log_printf("ASSERT: line %d of %s, %s\n", line, file, msg);
-   else
-      log_printf("ASSERT: line %d of %s\n", line, file);
+    if (NULL != msg)
+        log_printf("ASSERT: line %d of %s, %s\n", line, file, msg);
+    else
+        log_printf("ASSERT: line %d of %s\n", line, file);
 
-   // asm("break.n 1");
-   // TODO: proper error handling here
-   ESP_LOGE("LOG", "Assertion failed at %s:%d: %s", file, line, msg);
-   abort();
+    // asm("break.n 1");
+    // TODO: proper error handling here
+    ESP_LOGE("LOG", "Assertion failed at %s:%d: %s", file, line, msg);
+    abort();
 
-//   exit(-1);
+    //   exit(-1);
 }
-
 
 /*
 ** $Log: log.c,v $

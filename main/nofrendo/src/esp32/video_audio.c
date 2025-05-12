@@ -12,32 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "bsp/display.h"
+#include "driver/i2s_common.h"
+#include "driver/i2s_std.h"
+#include "driver/i2s_types.h"
+#include "esp_attr.h"
+#include "esp_err.h"
+#include "hal/lcd_types.h"
+#include "mipi_gfx.h"
+#include "sdkconfig.h"
+#include "soc/timer_group_reg.h"
+#include "soc/timer_group_struct.h"
+#include <bitmap.h>
+#include <event.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
 #include <freertos/timers.h>
+#include <gui.h>
+#include <log.h>
 #include <math.h>
-#include <spi_lcd.h>
+#include <nes/nes.h>
+#include <nes/nes_pal.h>
+#include <nes/nesinput.h>
+#include <nofconfig.h>
+#include <noftypes.h>
+#include <osd.h>
+#include <pretty_effect.h>
+#include <sndhrdw/nes_apu.h>
 #include <stdint.h>
 #include <string.h>
-#include "../../../menu/src/pretty_effect.h"
-#include "../bitmap.h"
-#include "../event.h"
-#include "../gui.h"
-#include "../log.h"
-#include "../nes/nes.h"
-#include "../nes/nes_pal.h"
-#include "../nes/nesinput.h"
-#include "../nofconfig.h"
-#include "../noftypes.h"
-#include "../osd.h"
-#include "../sndhrdw/nes_apu.h"
-#include "driver/i2s_common.h"
-#include "driver/i2s_std.h"
-#include "driver/i2s_types.h"
-#include "sdkconfig.h"
-#include "soc/timer_group_reg.h"
-#include "soc/timer_group_struct.h"
 
 // #include <psxcontroller.h>
 
@@ -48,8 +52,8 @@
 #define BYTES_PER_SAMPLE    2
 #define I2S_DEVICE_ID       0
 
-#define DEFAULT_WIDTH  320  // 256
-#define DEFAULT_HEIGHT 240  // NES_VISIBLE_HEIGHT
+#define DEFAULT_WIDTH  320 // 256
+#define DEFAULT_HEIGHT 240 // NES_VISIBLE_HEIGHT
 
 int xWidth;
 int yHight;
@@ -57,7 +61,8 @@ int yHight;
 TimerHandle_t timer;
 
 // Seemingly, this will be called only once. Should call func with a freq of frequency,
-int osd_installtimer(int frequency, void* func, int funcsize, void* counter, int countersize) {
+int osd_installtimer(int frequency, void* func, int funcsize, void* counter, int countersize)
+{
     printf("Timer install, freq=%d\n", frequency);
     timer = xTimerCreate("nes", configTICK_RATE_HZ / frequency, pdTRUE, NULL, func);
     xTimerStart(timer, 0);
@@ -74,10 +79,12 @@ QueueHandle_t queue;
 static void*  audio_buffer;
 #endif
 
-static void do_audio_frame() {
+static void do_audio_frame()
+{
 
 #if CONFIG_SOUND_ENABLED
-    if (!audio_callback || getVolume() <= 0) {
+    if (!audio_callback || getVolume() <= 0)
+    {
         i2s_zero_dma_buffer(I2S_DEVICE_ID);
         return;
     }
@@ -85,11 +92,13 @@ static void do_audio_frame() {
     int16_t*  bufS             = (int16_t*)audio_buffer;
     int       samplesRemaining = samplesPerPlayback;
     int       volShift         = 8 - getVolume() * 2;
-    while (samplesRemaining) {
+    while (samplesRemaining)
+    {
         int n = AUDIO_BUFFER_LENGTH > samplesRemaining ? samplesRemaining : AUDIO_BUFFER_LENGTH;
         apu_process(audio_buffer, n);
         // audio_callback(audio_buffer, n);  Why does this crash??
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++)
+        {
             int16_t  sample         = bufS[i];
             uint16_t unsignedSample = sample ^ 0x8000;
             bufU[i]                 = unsignedSample >> volShift;
@@ -101,19 +110,22 @@ static void do_audio_frame() {
 #endif
 }
 
-void osd_setsound(void (*playfunc)(void* buffer, int length)) {
+void osd_setsound(void (*playfunc)(void* buffer, int length))
+{
     // Indicates we should call playfunc() to get more data.
     audio_callback = playfunc;
 }
 
-static void osd_stopsound(void) {
+static void osd_stopsound(void)
+{
     audio_callback = NULL;
     printf("Sound stopped.\n");
     // i2s_stop(I2S_DEVICE_ID);
     // free(audio_buffer);
 }
 
-static int osd_init_sound(void) {
+static int osd_init_sound(void)
+{
 #if CONFIG_SOUND_ENABLED
     audio_buffer     = malloc(BYTES_PER_SAMPLE * AUDIO_BUFFER_LENGTH);
     i2s_config_t cfg = {.mode                 = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN,
@@ -139,9 +151,10 @@ static int osd_init_sound(void) {
     return 0;
 }
 
-void osd_getsoundinfo(sndinfo_t* info) {
+void osd_getsoundinfo(sndinfo_t* info)
+{
     info->sample_rate = AUDIO_SAMPLERATE;
-    info->bps         = BITS_PER_SAMPLE;  // Internal DAC is only 8-bit anyway
+    info->bps         = BITS_PER_SAMPLE; // Internal DAC is only 8-bit anyway
 }
 
 /*
@@ -156,7 +169,7 @@ static void      clear(uint8_t color);
 static bitmap_t* lock_write(void);
 static void      free_write(int num_dirties, rect_t* dirty_rects);
 static void      custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects);
-static char      fb[1];  // dummy
+static char      fb[1]; // dummy
 
 QueueHandle_t vidQueue;
 
@@ -175,68 +188,90 @@ viddriver_t sdlDriver = {
 
 bitmap_t* myBitmap;
 
-void osd_getvideoinfo(vidinfo_t* info) {
-    info->default_width  = DEFAULT_WIDTH;
-    info->default_height = DEFAULT_HEIGHT;
-    info->driver         = &sdlDriver;
+void osd_getvideoinfo(vidinfo_t* info)
+{
+    lcd_color_rgb_pixel_format_t color_fmt;
+    esp_err_t                    res = bsp_display_get_parameters(
+        &info->default_width,
+        &info->default_height,
+        &color_fmt);
+    if (res != ESP_OK)
+    {
+        printf("Failed to get display parameters: %d\n", res);
+        exit(1);
+    }
+    // info->default_width  = DEFAULT_WIDTH;
+    // info->default_height = DEFAULT_HEIGHT;
+    info->driver = &sdlDriver;
 }
 
 /* flip between full screen and windowed */
-void osd_togglefullscreen(int code) {
+void osd_togglefullscreen(int code)
+{
 }
 
 /* initialise video */
-static int init(int width, int height) {
+static int init(int width, int height)
+{
     return 0;
 }
 
-static void shutdown(void) {
+static void shutdown(void)
+{
 }
 
 /* set a video mode */
-static int set_mode(int width, int height) {
+static int set_mode(int width, int height)
+{
     return 0;
 }
 
-uint16_t myPalette[256];
+uint16_t DRAM_ATTR myPalette[256];
 
 /* copy nes palette over to hardware */
-static void set_palette(rgb_t* pal) {
+static void set_palette(rgb_t* pal)
+{
     uint16_t c;
 
     int i;
 
-    for (i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++)
+    {
         c            = (pal[i].b >> 3) + ((pal[i].g >> 2) << 5) + ((pal[i].r >> 3) << 11);
         myPalette[i] = c;
     }
 }
 
 /* clear all frames to a particular color */
-static void clear(uint8_t color) {
+static void clear(uint8_t color)
+{
     //   SDL_FillRect(mySurface, 0, color);
 }
 
 /* acquire the directbuffer for writing */
-static bitmap_t* lock_write(void) {
+static bitmap_t* lock_write(void)
+{
     //   SDL_LockSurface(mySurface);
-    myBitmap = bmp_createhw((uint8_t*)fb, xWidth, yHight, xWidth * 2);  // DEFAULT_WIDTH, DEFAULT_HEIGHT,
-                                                                      // DEFAULT_WIDTH*2);
+    myBitmap = bmp_createhw((uint8_t*)fb, xWidth, yHight, xWidth * 2); // DEFAULT_WIDTH, DEFAULT_HEIGHT,
+                                                                       // DEFAULT_WIDTH*2);
     return myBitmap;
 }
 
 /* release the resource */
-static void free_write(int num_dirties, rect_t* dirty_rects) {
+static void free_write(int num_dirties, rect_t* dirty_rects)
+{
     bmp_destroy(&myBitmap);
 }
 
-static void custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects) {
+static void custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects)
+{
     xQueueSend(vidQueue, &bmp, 0);
     do_audio_frame();
 }
 
 // This runs on core 1.
-static void videoTask(void* arg) {
+static void videoTask(void* arg)
+{
     int       x, y;
     bitmap_t* bmp = NULL;
 
@@ -244,11 +279,12 @@ static void videoTask(void* arg) {
     yHight = DEFAULT_HEIGHT;
     x      = (DEFAULT_WIDTH - xWidth) / 2;
     y      = ((DEFAULT_HEIGHT - yHight) / 2);
-    while (1) {
+    while (1)
+    {
         xQueueReceive(vidQueue, &bmp, portMAX_DELAY);
-        ili9341_write_frame(x, y, xWidth, yHight, (const uint8_t**)bmp->line, getXStretch(), getYStretch());
+        mipi_write_frame(x, y, xWidth, yHight, (const uint8_t*)bmp->data, getXStretch(), getYStretch());
         // Reset watchdog timer
-		// TODO: Watchdog reset needed?
+        // TODO: Watchdog reset needed?
         // TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
         // TIMERG0.wdt_feed     = 1;
         // TIMERG0.wdt_wprotect = 0;
@@ -259,12 +295,14 @@ static void videoTask(void* arg) {
 ** Input
 */
 
-static void osd_initinput() {
-	// TODO: keyboard init
+static void osd_initinput()
+{
+    // TODO: keyboard init
     // psxcontrollerInit();
 }
 
-void osd_getinput(void) {
+void osd_getinput(void)
+{
     // Note: These are in the order of PSX controller bitmasks (see psxcontroller.c)
     const int  ev[16] = {event_joypad1_select,
                          0,
@@ -283,7 +321,7 @@ void osd_getinput(void) {
                          event_joypad1_b,
                          0};
     static int oldb   = 0xffff;
-	// TODO: Replace with keyboard input
+    // TODO: Replace with keyboard input
     // int        b      = psxReadInput();
     int        b      = 0;
     int        chg    = b ^ oldb;
@@ -291,20 +329,25 @@ void osd_getinput(void) {
     oldb = b;
     event_t evh;
     //	printf("Input: %x\n", b);
-    for (x = 0; x < 16; x++) {
-        if (chg & 1) {
+    for (x = 0; x < 16; x++)
+    {
+        if (chg & 1)
+        {
             evh = event_get(ev[x]);
-            if (evh) evh((b & 1) ? INP_STATE_BREAK : INP_STATE_MAKE);
+            if (evh)
+                evh((b & 1) ? INP_STATE_BREAK : INP_STATE_MAKE);
         }
         chg >>= 1;
         b   >>= 1;
     }
 }
 
-static void osd_freeinput(void) {
+static void osd_freeinput(void)
+{
 }
 
-void osd_getmouse(int* x, int* y, int* button) {
+void osd_getmouse(int* x, int* y, int* button)
+{
 }
 
 /*
@@ -312,12 +355,14 @@ void osd_getmouse(int* x, int* y, int* button) {
 */
 
 /* this is at the bottom, to eliminate warnings */
-void osd_shutdown() {
+void osd_shutdown()
+{
     osd_stopsound();
     osd_freeinput();
 }
 
-static int logprint(const char* string) {
+static int logprint(const char* string)
+{
     return printf("%s", string);
 }
 
@@ -325,13 +370,15 @@ static int logprint(const char* string) {
 ** Startup
 */
 
-int osd_init() {
+int osd_init()
+{
     log_chain_logfunc(logprint);
 
-    if (osd_init_sound()) return -1;
+    if (osd_init_sound())
+        return -1;
     printf("free heap after sound init: %d\n", xPortGetFreeHeapSize());
-    ili9341_init();
-    ili9341_write_frame(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT, NULL, 0, 0);
+    mipi_init();
+    mipi_write_frame(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT, NULL, false, false);
     vidQueue = xQueueCreate(1, sizeof(bitmap_t*));
     xTaskCreatePinnedToCore(&videoTask, "videoTask", 2048, NULL, 5, NULL, 1);
     osd_initinput();
