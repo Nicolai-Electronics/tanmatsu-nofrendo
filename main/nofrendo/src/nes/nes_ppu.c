@@ -1006,6 +1006,11 @@ bool ppu_enabled(void)
 
 static void ppu_renderscanline(bitmap_t* bmp, int scanline, bool draw_flag)
 {
+    // Boundary check needed otherwise too fragile
+    if (scanline >= 240)
+    {
+        return;
+    }
     uint8_t* buf = bmp->line[scanline];
 
     /* start scanline - transfer ppu latch into vaddr */

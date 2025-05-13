@@ -30,6 +30,7 @@
 #include <freertos/task.h>
 #include <freertos/timers.h>
 #include <gui.h>
+#include <kbdcontroller.h>
 #include <log.h>
 #include <math.h>
 #include <nes/nes.h>
@@ -42,8 +43,6 @@
 #include <sndhrdw/nes_apu.h>
 #include <stdint.h>
 #include <string.h>
-
-// #include <psxcontroller.h>
 
 #define AUDIO_SAMPLERATE    22050
 #define AUDIO_BUFFER_LENGTH 64
@@ -298,7 +297,7 @@ static void videoTask(void* arg)
 static void osd_initinput()
 {
     // TODO: keyboard init
-    // psxcontrollerInit();
+    kbdControllerInit();
 }
 
 void osd_getinput(void)
@@ -321,9 +320,7 @@ void osd_getinput(void)
                          event_joypad1_b,
                          0};
     static int oldb   = 0xffff;
-    // TODO: Replace with keyboard input
-    // int        b      = psxReadInput();
-    int        b      = 0;
+    int        b      = kbdReadInput();
     int        chg    = b ^ oldb;
     int        x;
     oldb = b;
