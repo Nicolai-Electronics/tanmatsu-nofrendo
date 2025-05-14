@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "bsp/audio.h"
 #include "bsp/display.h"
 #include "driver/i2s_common.h"
 #include "driver/i2s_std.h"
@@ -62,6 +63,8 @@ int yHight;
 
 TimerHandle_t timer;
 
+i2s_chan_handle_t i2s_handle;
+
 // Seemingly, this will be called only once. Should call func with a freq of frequency,
 int osd_installtimer(int frequency, void* func, int funcsize, void* counter, int countersize)
 {
@@ -81,33 +84,62 @@ QueueHandle_t queue;
 static void*  audio_buffer;
 #endif
 
+// Union for left and right audio channel to uint32_t
+union MonoToStereo
+{
+    uint32_t val;
+    struct
+    {
+        int16_t l;
+        int16_t r;
+    };
+};
+
 static void do_audio_frame()
 {
 
 #if CONFIG_SOUND_ENABLED
     if (!audio_callback || getVolume() <= 0)
     {
-        i2s_zero_dma_buffer(I2S_DEVICE_ID);
+        // i2s_zero_dma_buffer(I2S_DEVICE_ID);
         return;
     }
-    uint16_t* bufU             = (uint16_t*)audio_buffer;
-    int16_t*  bufS             = (int16_t*)audio_buffer;
-    int       samplesRemaining = samplesPerPlayback;
-    int       volShift         = 8 - getVolume() * 2;
+    int16_t*                  bufS             = (int16_t*)audio_buffer;
+    int                       samplesRemaining = samplesPerPlayback;
+    static uint16_t           swapped;
+    static uint32_t           stereo_sample;
+    static uint8_t            i2s_stereo_out[AUDIO_BUFFER_LENGTH * 2 * 2]; // 16-bit stereo data
+    static size_t             written = -1;
+    static union MonoToStereo stereo;
+
     while (samplesRemaining)
     {
-        int n = AUDIO_BUFFER_LENGTH > samplesRemaining ? samplesRemaining : AUDIO_BUFFER_LENGTH;
-        apu_process(audio_buffer, n);
+        int size = AUDIO_BUFFER_LENGTH > samplesRemaining ? samplesRemaining : AUDIO_BUFFER_LENGTH;
+        // int size = AUDIO_BUFFER_LENGTH;
+        apu_process(audio_buffer, size);
         // audio_callback(audio_buffer, n);  Why does this crash??
-        for (int i = 0; i < n; i++)
+        // for (int i = 0; i < n; i++)
+        // {
+        //     int16_t  sample         = bufS[i];
+        //     uint16_t unsignedSample = sample ^ 0x8000;
+        //     bufU[i]                 = unsignedSample;
+        // }
+        for (size_t i = 0; i < size; i++)
         {
-            int16_t  sample         = bufS[i];
-            uint16_t unsignedSample = sample ^ 0x8000;
-            bufU[i]                 = unsignedSample >> volShift;
+            // Convert the union to use int16_t to match the data type
+            // Convert sample to unsigned as well
+            swapped = (uint16_t)bufS[i] + 0x8000;
+
+            // Build the stereo sample
+            stereo.l      = swapped;
+            stereo.r      = swapped;
+            stereo_sample = stereo.val;
+
+            ((uint32_t*)(i2s_stereo_out))[i] = stereo_sample;
         }
-        size_t written = -1;
-        i2s_write(I2S_DEVICE_ID, audio_buffer, BYTES_PER_SAMPLE * n, &written, portMAX_DELAY);
-        samplesRemaining -= n;
+
+        i2s_channel_write(i2s_handle, i2s_stereo_out, BYTES_PER_SAMPLE * 2 * size, &written, 12);
+        samplesRemaining -= size;
     }
 #endif
 }
@@ -129,20 +161,64 @@ static void osd_stopsound(void)
 static int osd_init_sound(void)
 {
 #if CONFIG_SOUND_ENABLED
-    audio_buffer     = malloc(BYTES_PER_SAMPLE * AUDIO_BUFFER_LENGTH);
-    i2s_config_t cfg = {.mode                 = I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN,
-                        .sample_rate          = AUDIO_SAMPLERATE,
-                        .bits_per_sample      = BITS_PER_SAMPLE,
-                        .channel_format       = I2S_CHANNEL_FMT_ONLY_LEFT,
-                        .communication_format = I2S_COMM_FORMAT_I2S_MSB,
-                        .intr_alloc_flags     = ESP_INTR_FLAG_INTRDISABLED,
-                        .dma_buf_count        = 8,
-                        .dma_buf_len          = 64,
-                        .use_apll             = false};
-    i2s_driver_install(I2S_DEVICE_ID, &cfg, 0, NULL);
-    i2s_set_pin(I2S_DEVICE_ID, NULL);
-    i2s_set_dac_mode(I2S_DAC_CHANNEL_LEFT_EN);
-    i2s_set_sample_rates(I2S_DEVICE_ID, AUDIO_SAMPLERATE);
+    ESP_LOGI(TAG, "Initializing BSP audio interface");
+    bsp_audio_set_volume(0);
+    esp_err_t res = bsp_audio_initialize();
+    if (res != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Initializing audio failed");
+        return res;
+    }
+
+    ESP_LOGI(TAG, "Enable aplifier for audio output");
+    bsp_audio_set_volume(getVolume());
+    bsp_audio_set_amplifier(false);
+
+    ESP_LOGI(TAG, "Initializing I2S audio interface");
+    // I2S audio
+    i2s_chan_config_t chan_cfg = (i2s_chan_config_t)I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
+
+    res = i2s_new_channel(&chan_cfg, &i2s_handle, NULL);
+    if (res != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Initializing I2S channel failed");
+        return res;
+    }
+
+    i2s_std_config_t i2s_config = {
+        .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG((uint32_t)AUDIO_SAMPLERATE),
+        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
+        .gpio_cfg =
+            {
+                .mclk = GPIO_NUM_30,
+                .bclk = GPIO_NUM_29,
+                .ws   = GPIO_NUM_31,
+                .dout = GPIO_NUM_28,
+                .din  = I2S_GPIO_UNUSED,
+                .invert_flags =
+                    {
+                        .mclk_inv = false,
+                        .bclk_inv = false,
+                        .ws_inv   = false,
+                    },
+            },
+    };
+
+    res = i2s_channel_init_std_mode(i2s_handle, &i2s_config);
+    if (res != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Configuring I2S channel failed");
+        return res;
+    }
+
+    res = i2s_channel_enable(i2s_handle);
+    if (res != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Enabling I2S channel failed");
+        return res;
+    }
+
+    audio_buffer       = malloc(BYTES_PER_SAMPLE * 2 * AUDIO_BUFFER_LENGTH);
     samplesPerPlayback = AUDIO_SAMPLERATE / NES_REFRESH_RATE;
     printf("Finished initializing sound\n");
 
@@ -176,16 +252,16 @@ static char      fb[1]; // dummy
 QueueHandle_t vidQueue;
 
 viddriver_t sdlDriver = {
-    "Simple DirectMedia Layer", /* name */
-    init,                       /* init */
-    shutdown,                   /* shutdown */
-    set_mode,                   /* set_mode */
-    set_palette,                /* set_palette */
-    clear,                      /* clear */
-    lock_write,                 /* lock_write */
-    free_write,                 /* free_write */
-    custom_blit,                /* custom_blit */
-    false                       /* invalidate flag */
+    "ESP32 P4 PPA driver", /* name */
+    init,                  /* init */
+    shutdown,              /* shutdown */
+    set_mode,              /* set_mode */
+    set_palette,           /* set_palette */
+    clear,                 /* clear */
+    lock_write,            /* lock_write */
+    free_write,            /* free_write */
+    custom_blit,           /* custom_blit */
+    false                  /* invalidate flag */
 };
 
 bitmap_t* myBitmap;

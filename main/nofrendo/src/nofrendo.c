@@ -123,7 +123,7 @@ void main_quit(void)
     console.nexttype = system_unknown;
 }
 
-/* brute force system autodetection */
+/* brute force system auto detection */
 static system_t detect_systemtype(const char* filename)
 {
     if (NULL == filename)

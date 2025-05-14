@@ -23,3 +23,4 @@ bool isAnyPressed(int ctl);
 bool isAnyFirePressed(int ctl);
 int  getTurboA();
 int  getTurboB();
+int  getVolume();

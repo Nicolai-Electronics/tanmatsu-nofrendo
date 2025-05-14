@@ -23,7 +23,7 @@ else()
 endif()
 
 # Switch to PAL mode
-add_compile_definitions(PAL)
+add_compile_definitions(PAL CONFIG_SOUND_ENABLED)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

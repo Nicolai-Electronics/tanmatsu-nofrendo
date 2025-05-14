@@ -35,12 +35,12 @@ static QueueHandle_t input_event_queue = NULL;
 #define PSX_ATT CONFIG_HW_PSX_ATT
 #define PSX_CMD CONFIG_HW_PSX_CMD
 
-#define DELAY() asm("nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;")
+// #define DELAY() asm("nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;")
 
-int  volume, bright;
-int  inpDelay;
-bool shutdown;
-bool showMenu;
+static int  volume = 60, bright;
+// static int  inpDelay;
+// static bool shutdown;
+static bool showMenu;
 
 bool getShowMenu()
 {
@@ -143,12 +143,12 @@ bool isAnyPressed(int ctl)
     return isAnyDirectionPressed(ctl) || isAnyActionPressed(ctl) || isAnyFirePressed(ctl);
 }
 
-int turboACounter       = 0;
-int turboBCounter       = 0;
-int turboASpeed         = 3;
-int turboBSpeed         = 3;
-int MAX_TURBO           = 6;
-int TURBO_COUNTER_RESET = 210;
+// static int turboACounter       = 0;
+// static int turboBCounter       = 0;
+static int turboASpeed = 3;
+static int turboBSpeed = 3;
+// static int MAX_TURBO           = 6;
+// static int TURBO_COUNTER_RESET = 210;
 
 int getTurboA()
 {
@@ -158,6 +158,11 @@ int getTurboA()
 int getTurboB()
 {
     return turboBSpeed;
+}
+
+int getVolume()
+{
+    return volume;
 }
 
 int kbToControllerState(const bool keys_pressed[])
