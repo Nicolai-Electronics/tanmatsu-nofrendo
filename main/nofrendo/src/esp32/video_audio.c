@@ -18,6 +18,7 @@
 #include "driver/i2s_types.h"
 #include "esp_attr.h"
 #include "esp_err.h"
+#include "esp_log.h"
 #include "hal/lcd_types.h"
 #include "mipi_gfx.h"
 #include "sdkconfig.h"
@@ -54,6 +55,8 @@
 #define DEFAULT_WIDTH  320 // 256
 #define DEFAULT_HEIGHT 240 // NES_VISIBLE_HEIGHT
 
+static const char* TAG = "video_audio";
+
 int xWidth;
 int yHight;
 
@@ -62,7 +65,7 @@ TimerHandle_t timer;
 // Seemingly, this will be called only once. Should call func with a freq of frequency,
 int osd_installtimer(int frequency, void* func, int funcsize, void* counter, int countersize)
 {
-    printf("Timer install, freq=%d\n", frequency);
+    ESP_LOGI(TAG, "Timer install, freq=%d\n", frequency);
     timer = xTimerCreate("nes", configTICK_RATE_HZ / frequency, pdTRUE, NULL, func);
     xTimerStart(timer, 0);
     return 0;
@@ -199,9 +202,9 @@ void osd_getvideoinfo(vidinfo_t* info)
         printf("Failed to get display parameters: %d\n", res);
         exit(1);
     }
-    // info->default_width  = DEFAULT_WIDTH;
-    // info->default_height = DEFAULT_HEIGHT;
-    info->driver = &sdlDriver;
+    info->default_width  = DEFAULT_WIDTH;
+    info->default_height = DEFAULT_HEIGHT;
+    info->driver         = &sdlDriver;
 }
 
 /* flip between full screen and windowed */
@@ -296,7 +299,6 @@ static void videoTask(void* arg)
 
 static void osd_initinput()
 {
-    // TODO: keyboard init
     kbdControllerInit();
 }
 

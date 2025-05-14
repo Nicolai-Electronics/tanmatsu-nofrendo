@@ -22,6 +22,9 @@ else()
 	message(FATAL_ERROR "Unknown target device ${DEVICE}")
 endif()
 
+# Switch to PAL mode
+add_compile_definitions(PAL)
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
