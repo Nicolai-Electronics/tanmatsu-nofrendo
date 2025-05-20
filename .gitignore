@@ -17,3 +17,8 @@ shell.nix
 sdkconfig
 .submodules_update_done
 
+compile_commands.json
+env
+sdkconfigs/general
+sdkconfigs/mch2022
+sdkconfigs/tanmatsu

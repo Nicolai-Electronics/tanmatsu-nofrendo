@@ -121,7 +121,7 @@ char* osd_getromdata()
     if (!rom)
     {
         printf("Could not read %s\n", selectedRomFilename);
-        exit(1);
+        return NULL;
     }
 
     // First figure out how large the file is
