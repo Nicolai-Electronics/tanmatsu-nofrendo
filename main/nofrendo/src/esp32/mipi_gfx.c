@@ -263,7 +263,29 @@ uint16_t scaleY[240];
 #define ignore_border 4
 
 static int lastShowMenu = 0;
-// TODO: Replace with PPA P4 implementation
+
+void mipi_blit(const uint16_t* data,
+               const int       pic_w,
+               const int       pic_h,
+               const int       xs,
+               const int       ys,
+               const int       width,
+               const int       height)
+{
+    // Black background
+    // backgroundColor                  = 0;
+    active_config.in.buffer          = data;
+    active_config.in.pic_w           = pic_w;
+    active_config.in.pic_h           = pic_h;
+    // active_config.in.block_w         = width;
+    active_config.in.block_h         = height;
+    active_config.out.block_offset_x = xs;
+    active_config.out.block_offset_y = ys;
+    // active_config.out.block_offset_y = (800 - (NES_VISIBLE_WIDTH * 2 * 1.333)) / 2; // TODO: Proper constants
+    ESP_ERROR_CHECK(ppa_do_scale_rotate_mirror(ppa_srm_handle, &active_config));
+    esp_lcd_panel_draw_bitmap(display_lcd_panel, 0, 0, display_h_res, display_v_res, mipi_fb);
+}
+
 /**
  * Renders a frame to the display.
  *
@@ -281,13 +303,13 @@ static int lastShowMenu = 0;
  *
  * @warning This function does not handle interlacing or other advanced display features. It simply writes the given frame data directly to the display.
  */
-void       mipi_write_frame(const uint16_t xs,
-                            const uint16_t ys,
-                            const uint16_t width,
-                            const uint16_t height,
-                            const uint8_t  data[],
-                            bool           xStr,
-                            bool           yStr)
+void mipi_write_frame(const uint16_t xs,
+                      const uint16_t ys,
+                      const uint16_t width,
+                      const uint16_t height,
+                      const uint8_t  data[],
+                      bool           xStr,
+                      bool           yStr)
 {
     // int      x, y;
     // int      xx, yy;
@@ -318,21 +340,28 @@ void       mipi_write_frame(const uint16_t xs,
         prescale_fb[i] = myPalette[(uint32_t)data[i]];
     }
 
-    // Black background
-    // backgroundColor                  = 0;
-    active_config.in.buffer          = prescale_fb;
-    // active_config.in.pic_w           = width;
-    active_config.in.pic_h           = height;
-    // active_config.in.block_w         = width;
-    active_config.in.block_h         = height;
-    active_config.out.block_offset_x = xs;
-    active_config.out.block_offset_y = (800 - (NES_VISIBLE_WIDTH * 2 * 1.333)) / 2; // TODO: Proper constants
-    ESP_ERROR_CHECK(ppa_do_scale_rotate_mirror(ppa_srm_handle, &active_config));
-    esp_lcd_panel_draw_bitmap(display_lcd_panel, 0, 0, display_h_res, display_v_res, mipi_fb);
+    // ys is fixed for emulator output
+    const uint16_t my_ys = (800 - (NES_VISIBLE_WIDTH * 2 * 1.333)) / 2;
+
+    mipi_blit(
+        prescale_fb,
+        NES_SCREEN_WIDTH,
+        NES_SCREEN_HEIGHT,
+        xs,
+        my_ys,
+        width,
+        height);
 }
 
 static esp_err_t mipi_init_ppa(const size_t bf_h, const size_t bf_v)
 {
+
+    if (ppa_srm_handle != NULL)
+    {
+        // Already initialized, return
+        return ESP_OK;
+    }
+
     // Setup frame to bitmap PPA config, which blits the frame to the MIPI buffer.
     esp_err_t res;
 
@@ -381,17 +410,11 @@ static esp_err_t mipi_init_ppa(const size_t bf_h, const size_t bf_v)
     return res;
 }
 
-// void precalculateLookupTables()
-// {
-//     for (int i = 0; i < 320; i++)
-//     {
-//         scaleX[i] = i * 0.8;
-//     }
-//     for (int i = 0; i < 240; i++)
-//     {
-//         scaleY[i] = i * 0.94;
-//     }
-// }
+void mipi_cls()
+{
+    memset(mipi_fb, 0, display_h_res * display_v_res * sizeof(uint16_t));
+}
+
 void mipi_init()
 {
     esp_err_t res;

@@ -118,6 +118,12 @@ int app_main(void)
 
 #ifndef SKIP_MENU
     selectedRomFilename = runMenu();
+    if (selectedRomFilename == NULL)
+    {
+        ESP_LOGE(TAG, "No ROM selected. Exiting...\n");
+        while (true)
+            ;
+    }
 #endif
 
     ESP_LOGI(TAG, "NoFrendo start!\n");

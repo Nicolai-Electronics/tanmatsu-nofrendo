@@ -29,13 +29,26 @@ extern "C"
 {
 #endif
 
-    void                                mipi_write_frame(const uint16_t x,
-                                                         const uint16_t y,
-                                                         const uint16_t width,
-                                                         const uint16_t height,
-                                                         const uint8_t  data[],
-                                                         bool           xStr,
-                                                         bool           yStr);
+    // Converts NES emulator frame to 565 RGB
+    void mipi_write_frame(const uint16_t x,
+                          const uint16_t y,
+                          const uint16_t width,
+                          const uint16_t height,
+                          const uint8_t  data[],
+                          bool           xStr,
+                          bool           yStr);
+
+    // Expects a frame buffer with RGB565 format
+    void mipi_blit(const uint16_t* data,
+                   const int       pic_w,
+                   const int       pic_h,
+                   const int       xs,
+                   const int       ys,
+                   const int       width,
+                   const int       height);
+
+    void mipi_cls(void);
+
     void                                mipi_init();
     extern bool                         mipi_initialized;
     extern uint16_t*                    mipi_fb;

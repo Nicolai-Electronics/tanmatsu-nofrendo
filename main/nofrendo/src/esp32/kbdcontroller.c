@@ -256,6 +256,10 @@ int kbdReadInput()
 
 void kbdControllerInit()
 {
+    if (input_event_queue != NULL)
+    {
+        return;
+    }
     // TODO: implement
     ESP_LOGI(TAG, "Initializing Tanmatsu keyboard controller");
 

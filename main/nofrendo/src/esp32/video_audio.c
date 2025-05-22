@@ -172,7 +172,7 @@ static int osd_init_sound(void)
 
     ESP_LOGI(TAG, "Enable aplifier for audio output");
     bsp_audio_set_volume(getVolume());
-    bsp_audio_set_amplifier(false);
+    bsp_audio_set_amplifier(true);
 
     ESP_LOGI(TAG, "Initializing I2S audio interface");
     // I2S audio

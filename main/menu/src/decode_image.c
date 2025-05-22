@@ -17,27 +17,28 @@ Keep in mind that the decoder library cannot handle progressive files (will give
 format if you want to use a different image file.
 */
 
+#include "driver/jpeg_decode.h"
 #include <decode_image.h>
 #include <string.h>
-// #include "driver/jpeg_decode.h"
 
 // Reference the binary-included jpeg file -- defined by the build
 extern const uint8_t image_jpg_start[] asm("_binary_lib_menu_data_image_jpg_start");
 extern const uint8_t image_jpg_end[] asm("_binary_lib_menu_data_image_jpg_end");
 // Define the height and width of the jpeg file. Make sure this matches the actual jpeg
 // dimensions.
-#define IMAGE_W 113  // 336
+#define IMAGE_W 113 // 336
 #define IMAGE_H 256
 
 static const char* TAG = "ImageDec";
 
 // Data that is passed from the decoder function to the infunc/outfunc functions.
-typedef struct {
-    const unsigned char* inData;   // Pointer to jpeg data
-    int                  inPos;    // Current position in jpeg data
-    uint16_t**           outData;  // Array of IMAGE_H pointers to arrays of IMAGE_W 16-bit pixel values
-    int                  outW;     // Width of the resulting file
-    int                  outH;     // Height of the resulting file
+typedef struct
+{
+    const unsigned char* inData;  // Pointer to jpeg data
+    int                  inPos;   // Current position in jpeg data
+    uint16_t**           outData; // Array of IMAGE_H pointers to arrays of IMAGE_W 16-bit pixel values
+    int                  outW;    // Width of the resulting file
+    int                  outH;    // Height of the resulting file
 } JpegDev;
 
 // Input function for jpeg decoder. Just returns bytes from the inData field of the JpegDev structure.
@@ -108,12 +109,13 @@ typedef struct {
 // }
 
 // Decode the embedded image into pixel lines that can be used with the rest of the logic.
-esp_err_t decode_image(uint16_t*** pixels) {
-    //     char *work=NULL;
-    //     int r;
-    //     JDEC decoder;
-    //     JpegDev jd;
-    //     *pixels=NULL;
+esp_err_t decode_image(uint16_t*** pixels)
+{
+    // char*   work = NULL;
+    // int     r;
+    // JDEC    decoder;
+    // JpegDev jd;
+    // *pixels       = NULL;
     esp_err_t ret = ESP_OK;
 
     //     //Alocate pixel memory. Each line is an array of IMAGE_W 16-bit pixels; the `*pixels` array itself contains

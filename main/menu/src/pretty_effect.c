@@ -99,35 +99,35 @@ static inline uint16_t bootScreen(int x, int y, int bottomLogoOffset, int initia
 {
     if (initialStaticFrames > 10)
         return getNoise();
-    else if (initialStaticFrames > 0)
-    {
-        // Draw just the top of the logo
-        if (x > 250 && x < 284 && y > 210 && y < 228)
-        {
-            int xAct = ((x - 250) / 2) + 96;
-            int yAct = ((y - 210) / 2) + 210;
-            if (pixels[yAct + 30][xAct] < 0x8000 + 1000)
-                return 0x8000 + 31;
-        }
-    }
-    else if (x >= 105 && x <= 216)
-    {
-        // Draw the top of the logo
-        if (y < 65 && pixels[y][x - 104] != 0x0000)
-        {
-            return pixels[y][x - 104];
-        }
-        else
-        {
-            // Draw the emu, sliding upwards using bottomLogoOffset
-            y = y - bottomLogoOffset;
+    // else if (initialStaticFrames > 0)
+    // {
+    //     // Draw just the top of the logo
+    //     if (x > 250 && x < 284 && y > 210 && y < 228)
+    //     {
+    //         int xAct = ((x - 250) / 2) + 96;
+    //         int yAct = ((y - 210) / 2) + 210;
+    //         if (pixels[yAct + 30][xAct] < 0x8000 + 1000)
+    //             return 0x8000 + 31;
+    //     }
+    // }
+    // else if (x >= 105 && x <= 216)
+    // {
+    //     // Draw the top of the logo
+    //     if (y < 65 && pixels[y][x - 104] != 0x0000)
+    //     {
+    //         return pixels[y][x - 104];
+    //     }
+    //     else
+    //     {
+    //         // Draw the emu, sliding upwards using bottomLogoOffset
+    //         y = y - bottomLogoOffset;
 
-            if (y > 65 && pixels[y][x - 104] != 0x0000)
-            {
-                return pixels[y][x - 104];
-            }
-        }
-    }
+    //         if (y > 65 && pixels[y][x - 104] != 0x0000)
+    //         {
+    //             return pixels[y][x - 104];
+    //         }
+    //     }
+    // }
     return getNoise();
 }
 
@@ -144,7 +144,7 @@ static inline uint16_t get_bgnd_pixel(int x, int y, int bottomLogoOffset, int bo
     }
 }
 
-#define DEFAULT_MENU_DELAY 100
+#define DEFAULT_MENU_DELAY 1000
 // Deal with user activity during boot screen and menu
 void handleUserInput()
 {
@@ -221,13 +221,17 @@ void drawRows(uint16_t* dest, int y, int rowCount)
             splashScreenTimer--;
     }
 
-    for (int yy = y; yy < y + rowCount; yy++)
+    // for (int yy = y; yy < y + rowCount; yy++)
+    // {
+    for (int x = 0; x < 320; x++)
     {
-        for (int x = 0; x < 320; x++)
-        {
-            *dest++ = get_bgnd_pixel(x, yy, bottomLogoOffset, initialStaticFrames, selectedIdx);
-        }
+        *dest++ = get_bgnd_pixel(x,
+                                 y,
+                                 bottomLogoOffset,
+                                 initialStaticFrames,
+                                 selectedIdx);
     }
+    // }
 }
 
 // void initGPIO(int gpioNo){
@@ -237,11 +241,11 @@ void drawRows(uint16_t* dest, int y, int rowCount)
 
 void freeMem()
 {
-    for (int i = 0; i < 256; i++)
-    {
-        free((pixels)[i]);
-    }
-    free(pixels);
+    // for (int i = 0; i < 256; i++)
+    // {
+    //     free((pixels)[i]);
+    // }
+    // free(pixels);
     freeRL();
 }
 
