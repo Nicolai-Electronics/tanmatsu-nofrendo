@@ -21,7 +21,7 @@
 // #include "driver/sdspi_host.h"
 // #include "esp_partition.h"
 #include "led.h"
-// #include "menu/src/menu.h"
+#include "menu/src/menu.h"
 // #include "nofrendo/src/nofrendo.h"
 #include <nofrendo.h>
 // #include "sd_pwr_ctrl_by_on_chip_ldo.h"
@@ -29,6 +29,7 @@
 // #include "spi_flash_mmap.h"
 // #include "targets/tanmatsu/tanmatsu_hardware.h"
 
+#include "display.h"
 #include "sdcard.h"
 
 // Constants
@@ -109,8 +110,11 @@ int app_main(void)
     pax_buf_set_orientation(&fb, PAX_O_ROT_CW);
 
     pax_background(&fb, 0xFF000000);
-    pax_draw_text(&fb, 0xFFFFFFFF, pax_font_sky_mono, 16, 0, 0, "Hello world!");
+    // pax_draw_text(&fb, 0xFFFFFFFF, pax_font_sky_mono, 16, 0, 0, "Hello world!");
     blit();
+
+    // init PPA display buffer
+    init_display();
 
 #ifndef SKIP_MENU
     selectedRomFilename = runMenu();

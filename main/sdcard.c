@@ -17,7 +17,7 @@ static const char* TAG = "sd_card_setup";
 #define READ_BUFFER_SIZE 64
 
 #ifdef SKIP_MENU
-char* selectedRomFilename = SD_CARD_ROM_PATH "/super-mario-bros.nes";
+char* selectedRomFilename = SD_CARD_ROM_PATH "/super-mario-bros-3.nes";
 #else
 char* selectedRomFilename;
 #endif

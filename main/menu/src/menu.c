@@ -6,11 +6,12 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
+#include "esp_err.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 // #include "esp_system.h"
 
 // #include "driver/spi_master.h"
@@ -50,8 +51,8 @@ MenuEntry* menuEntries;
 #define LEDC_LS_MODE        LEDC_HIGH_SPEED_MODE
 #define LEDC_LS_CH3_CHANNEL LEDC_CHANNEL_3
 
-#define LCD_BKG_ON()       GPIO.out_w1tc = (1 << PIN_NUM_BCKL)  // Backlight ON
-#define LCD_BKG_OFF()      GPIO.out_w1ts = (1 << PIN_NUM_BCKL)  // Backlight OFF
+#define LCD_BKG_ON()       GPIO.out_w1tc = (1 << PIN_NUM_BCKL) // Backlight ON
+#define LCD_BKG_OFF()      GPIO.out_w1ts = (1 << PIN_NUM_BCKL) // Backlight OFF
 // To speed up transfers, every SPI transfer sends a bunch of rows. This define specifies how many. More means more
 // memory use, but less overhead for setting up / finishing transfers. Make sure 240 is dividable by this.
 #define FRAMEBUFFER_HEIGHT 4
@@ -61,13 +62,15 @@ MenuEntry* menuEntries;
 /*
  The LCD needs a bunch of command/argument values to be initialized. They are stored in this struct.
 */
-typedef struct {
+typedef struct
+{
     uint8_t cmd;
     uint8_t data[16];
-    uint8_t databytes;  // No of data in data; bit 7 = delay after set; 0xFF = end of cmds.
+    uint8_t databytes; // No of data in data; bit 7 = delay after set; 0xFF = end of cmds.
 } lcd_init_cmd_t;
 
-typedef enum {
+typedef enum
+{
     LCD_TYPE_ILI = 1,
     LCD_TYPE_ST,
     LCD_TYPE_MAX,
@@ -372,10 +375,12 @@ typedef enum {
 // Show menu until a Rom is selected
 // Because the SPI driver handles transactions in the background, we can calculate the next line
 // while the previous one is being sent.
-static char* selectRomFromMenu() {
+static char* selectRomFromMenu()
+{
     uint16_t* lines[2];
     // Allocate memory for the pixel buffers
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++)
+    {
         lines[i] = heap_caps_malloc(320 * FRAMEBUFFER_HEIGHT * sizeof(uint16_t), MALLOC_CAP_DMA);
         assert(lines[i] != NULL);
     }
@@ -383,13 +388,16 @@ static char* selectRomFromMenu() {
     int sendingBufferIdx = -1;
     int activeBufferIdx  = 0;
 
-    while (1) {
-        for (int y = 0; y < 240; y += FRAMEBUFFER_HEIGHT) {
+    while (1)
+    {
+        for (int y = 0; y < 240; y += FRAMEBUFFER_HEIGHT)
+        {
             // Draw a framebuffer's worth of graphics
             drawRows(lines[activeBufferIdx], y, FRAMEBUFFER_HEIGHT);
             handleUserInput();
             // Finish up the sending process of the previous line, if any
-            if (sendingBufferIdx != -1) {
+            if (sendingBufferIdx != -1)
+            {
                 // send_line_finish(spi);
             }
             // Swap sending_line and calc_line
@@ -400,13 +408,15 @@ static char* selectRomFromMenu() {
             // The line set is queued up for sending now; the actual sending happens in the
             // background. We can go on to calculate the next line set as long as we do not
             // touch line[sending_line]; the SPI sending process is still reading from that.
-            if (getSelRom() != NO_ROM_SELECTED) {
+            if (getSelRom() != NO_ROM_SELECTED)
+            {
                 char* filename = (char*)malloc(FILENAME_LENGTH + 8);
                 filename[0]    = '\0';
                 strcat(filename, "/spiffs/");
                 strcat(filename, menuEntries[getSelRom()].fileName);
                 freeMem();
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 2; i++)
+                {
                     heap_caps_free(lines[i]);
                 }
                 return filename;
@@ -420,10 +430,12 @@ static char* selectRomFromMenu() {
 
 // ledc_channel_config_t ledc_channel;
 
-void initBl() {
+void initBl()
+{
     // Ignore LED 0 as it's the power LED
-    for (uint8_t i = 1; i < 6; i++) {
-        set_led_color(i, 0x000000);  // Black
+    for (uint8_t i = 1; i < 6; i++)
+    {
+        set_led_color(i, 0x000000); // Black
     }
     // show_led_colors();
     // ledc_timer_config_t ledc_timer = {
@@ -466,7 +478,8 @@ void initBl() {
 //     #endif
 // }
 
-char* runMenu() {
+char* runMenu()
+{
     printf("Init SPI bus\n");
     esp_err_t ret;
     // spi_device_handle_t spi;

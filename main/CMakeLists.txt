@@ -4,6 +4,7 @@ idf_component_register(
 		"main.c"
         "sdcard.c"
 		"led.c"
+        "display.c"
 
         "menu/src/charData.c"
         "menu/src/charPixels.c"

@@ -29,6 +29,7 @@
 #include "soc/gpio_struct.h"
 #include "soc/io_mux_reg.h"
 #include "soc/spi_reg.h"
+#include <display.h>
 #include <esp_log.h>
 #include <mipi_gfx.h>
 #include <nes.h>
@@ -325,7 +326,7 @@ void       mipi_write_frame(const uint16_t xs,
     // active_config.in.block_w         = width;
     active_config.in.block_h         = height;
     active_config.out.block_offset_x = xs;
-    active_config.out.block_offset_y = (800 - (256 * 2 * 1.333)) / 2; // TODO: Proper constants
+    active_config.out.block_offset_y = (800 - (NES_VISIBLE_WIDTH * 2 * 1.333)) / 2; // TODO: Proper constants
     ESP_ERROR_CHECK(ppa_do_scale_rotate_mirror(ppa_srm_handle, &active_config));
     esp_lcd_panel_draw_bitmap(display_lcd_panel, 0, 0, display_h_res, display_v_res, mipi_fb);
 }
@@ -348,7 +349,7 @@ static esp_err_t mipi_init_ppa(const size_t bf_h, const size_t bf_v)
     ppa_in_pic_blk_config_t* in = &active_config.in;
     in->pic_w                   = NES_SCREEN_WIDTH;
     in->pic_h                   = NES_SCREEN_HEIGHT;
-    in->block_w                 = NES_SCREEN_WIDTH;
+    in->block_w                 = NES_VISIBLE_WIDTH;
     in->block_h                 = NES_VISIBLE_HEIGHT;
     in->block_offset_x          = 0;
     in->block_offset_y          = 0;
@@ -412,9 +413,7 @@ void mipi_init()
     size_t buffer_size = display_h_res * display_v_res * sizeof(uint16_t);
 
     prescale_fb = (uint16_t*)heap_caps_malloc(320 * 240 * sizeof(uint16_t), MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
-    mipi_fb     = (uint16_t*)heap_caps_malloc(
-        buffer_size,
-        MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
+    mipi_fb     = get_mipi_framebuffer();
 
     for (int i = 0; i < buffer_size / sizeof(uint16_t); i++)
     {
