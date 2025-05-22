@@ -19,6 +19,6 @@ sdkconfig
 
 compile_commands.json
 env
-sdkconfigs/general
-sdkconfigs/mch2022
-sdkconfigs/tanmatsu
+# sdkconfigs/general
+# sdkconfigs/mch2022
+# sdkconfigs/tanmatsu
