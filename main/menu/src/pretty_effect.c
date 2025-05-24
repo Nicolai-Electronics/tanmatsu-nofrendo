@@ -112,7 +112,7 @@ inline int rgbColor(const uint8_t red, const uint8_t green, const uint8_t blue)
  *
  * @return A pseudo-random 32-bit unsigned integer.
  */
-inline uint32_t xorshift32()
+static inline uint32_t xorshift32()
 {
     static uint32_t state = 12345; // Seed value (can be any non-zero value)
 
@@ -123,7 +123,7 @@ inline uint32_t xorshift32()
     return state;
 }
 
-int getNoise()
+static inline uint16_t getNoise()
 {
     whiteN = xorshift32() % 256;
     return rgbColor(whiteN, whiteN, whiteN);
