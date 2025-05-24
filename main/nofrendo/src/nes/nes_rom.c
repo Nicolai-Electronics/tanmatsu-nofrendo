@@ -94,7 +94,7 @@ void rom_savesram(rominfo_t* rominfo)
     if (rominfo->flags & ROM_FLAG_BATTERY)
     {
         log_printf("Preparing to save sram file for rom %s\n", rominfo->filename);
-        strncpy(fn, rominfo->filename, PATH_MAX);
+        strncpy(fn, rominfo->filename, PATH_MAX + 1);
         osd_newextension(fn, ".sav");
 
         fp = fopen(fn, "wb");
@@ -122,7 +122,7 @@ static void rom_loadsram(rominfo_t* rominfo)
     if (rominfo->flags & ROM_FLAG_BATTERY)
     {
         log_printf("Preparing to load sram file for rom %s\n", rominfo->filename);
-        strncpy(fn, rominfo->filename, PATH_MAX);
+        strncpy(fn, rominfo->filename, PATH_MAX + 1);
         osd_newextension(fn, ".sav");
 
         fp = fopen(fn, "rb");
@@ -406,7 +406,7 @@ char* rom_getinfo(rominfo_t* rominfo)
     if (strrchr(rominfo->filename, PATH_SEP))
         strncpy(romname, strrchr(rominfo->filename, PATH_SEP) + 1, PATH_MAX);
     else
-        strncpy(romname, rominfo->filename, PATH_MAX);
+        strncpy(romname, rominfo->filename, PATH_MAX + 1);
 
     /* If our filename is too long, truncate our displayed filename */
     if (strlen(romname) > ROM_DISP_MAXLEN)

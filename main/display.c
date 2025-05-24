@@ -17,6 +17,12 @@ void init_display(void)
 {
     ESP_LOGI(TAG, "Initializing display");
 
+    if (mipi_fb != NULL)
+    {
+        ESP_LOGW(TAG, "MIPI display framebuffer already allocated");
+        return;
+    }
+
     esp_err_t res;
 
     res = bsp_display_get_panel(&display_lcd_panel);

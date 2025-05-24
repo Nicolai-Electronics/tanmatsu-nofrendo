@@ -7,7 +7,6 @@
 #include "hal/ldo_types.h"
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include "sdmmc_cmd.h"
-#include "spi_flash_mmap.h"
 #include "targets/tanmatsu/tanmatsu_hardware.h"
 #include <string.h>
 #include <sys/stat.h>

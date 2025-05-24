@@ -23,7 +23,6 @@
 ** $Id: nes_ppu.c,v 1.2 2001/04/27 14:37:11 neil Exp $
 */
 
-#include "../gui.h"
 #include "esp_log.h"
 #include "nes6502.h"
 #include <bitmap.h>
@@ -170,11 +169,14 @@ void ppu_setpage(int size, int page_num, uint8_t* location)
         ppu.page[page_num++] = location;
         ppu.page[page_num++] = location;
         ppu.page[page_num++] = location;
+        [[fallthrough]];
     case 4:
         ppu.page[page_num++] = location;
         ppu.page[page_num++] = location;
+        [[fallthrough]];
     case 2:
         ppu.page[page_num++] = location;
+        [[fallthrough]];
     case 1:
         ppu.page[page_num++] = location;
         break;
@@ -784,7 +786,7 @@ typedef struct obj_s
 static void ppu_renderoam(uint8_t* vidbuf, int scanline)
 {
     uint8_t* buf_ptr;
-    uint32_t vram_offset, savecol[2];
+    uint32_t vram_offset, savecol[2] = {0, 0};
     int      sprite_num, spritecount;
     obj_t*   sprite_ptr;
     uint8_t  sprite_height;

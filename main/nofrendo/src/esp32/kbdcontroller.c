@@ -16,13 +16,10 @@
 #include "kbdcontroller.h"
 #include "bsp/input.h"
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
+// #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "sdkconfig.h"
-#include "soc/gpio_struct.h"
-#include <driver/gpio.h>
 #include <pretty_effect.h>
 #include <stdio.h>
 
@@ -37,7 +34,8 @@ static QueueHandle_t input_event_queue = NULL;
 
 // #define DELAY() asm("nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;")
 
-static int  volume = 60, bright;
+static int  volume = 60;
+// static int  bright;
 // static int  inpDelay;
 // static bool shutdown;
 static bool showMenu;
@@ -245,6 +243,7 @@ int kbdReadInput()
             {
                 // Toggle show menu when the Purple diamond key is pressed (F6)
                 showMenu = !showMenu;
+                // esp_restart();
             }
         }
         default:

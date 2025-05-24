@@ -16,8 +16,11 @@
 // #include "driver/gpio.h"
 #include <charPixels.h>
 // #include "esp_deep_sleep.h"
+#include "esp_log.h"
 #include <kbdcontroller.h>
 #include <menu.h>
+
+static const char* const TAG = "pretty_effect";
 
 uint16_t** pixels;
 int        newX;
@@ -25,7 +28,7 @@ int        splashScreenTimer;
 int        initialStaticFrames;
 int        bottomLogoOffset;
 int        logoMoveSpeed;
-int        whiteN;
+uint8_t    whiteN;
 int        colorCycle;
 int        selectedIdx;
 int        inputDelay;
@@ -78,18 +81,51 @@ int getSelRom()
 {
     return selRom;
 }
-//!!! Colors repeat after 3Bit(example: 001 = light green, 111 = max green -> 1000 = again light green),
-//		 so all values over (dec) 7 start to repeat the color, but they are stored in 5bits!!!
-// returns a 16bit rgb Color (1Bit + 15Bit bgr), values for each Color from 0-31
-//(MSB=? + 5Bits blue + 5Bits red + 5Bits green)
-int rgbColor(int red, int green, int blue)
+
+/**
+ * @brief Converts RGB color components to a 16-bit RGB565 color value
+ *
+ * This function takes 8-bit red, green, and blue color components and
+ * converts them to a 16-bit RGB565 color format used by the display.
+ * The conversion reduces color depth from 8 bits per channel to:
+ * - 5 bits for red (0-31)
+ * - 6 bits for green (0-63)
+ * - 5 bits for blue (0-31)
+ *
+ * @param red   8-bit red component (0-255)
+ * @param green 8-bit green component (0-255)
+ * @param blue  8-bit blue component (0-255)
+ * @return      16-bit RGB565 color value
+ */
+inline int rgbColor(const uint8_t red, const uint8_t green, const uint8_t blue)
 {
-    return 0x8000 + blue * 1024 + red * 32 + green;
+    // Direct bit manipulation is faster than using a union with bit fields
+    // Format: RRRRRGGGGGGBBBBB
+    return ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | (blue >> 3);
+}
+
+/**
+ * @brief Xorshift32 pseudo-random number generator.
+ *
+ * This function generates a pseudo-random 32-bit unsigned integer using the Xorshift32 algorithm.
+ * The internal state is updated with each call, so subsequent calls will produce different results.
+ *
+ * @return A pseudo-random 32-bit unsigned integer.
+ */
+inline uint32_t xorshift32()
+{
+    static uint32_t state = 12345; // Seed value (can be any non-zero value)
+
+    state ^= state << 13;
+    state ^= state >> 17;
+    state ^= state << 5;
+
+    return state;
 }
 
 int getNoise()
 {
-    whiteN = rand() % 8;
+    whiteN = xorshift32() % 256;
     return rgbColor(whiteN, whiteN, whiteN);
 }
 
@@ -97,8 +133,8 @@ int getNoise()
 // Grab a rgb16 pixel from the esp32_tiles image, scroll part of it in
 static inline uint16_t bootScreen(int x, int y, int bottomLogoOffset, int initialStaticFrames)
 {
-    if (initialStaticFrames > 10)
-        return getNoise();
+    // if (initialStaticFrames > 10)
+    //     return getNoise();
     // else if (initialStaticFrames > 0)
     // {
     //     // Draw just the top of the logo
@@ -156,7 +192,7 @@ void handleUserInput()
         if (isAnyPressed(input))
         {
             // Immediately cancel splashscreen
-            printf("Cancelling animation\n");
+            ESP_LOGI(TAG, "Cancelling animation\n");
             splashScreenTimer = 0;
             inputDelay        = DEFAULT_MENU_DELAY;
         }
@@ -234,11 +270,6 @@ void drawRows(uint16_t* dest, int y, int rowCount)
     // }
 }
 
-// void initGPIO(int gpioNo){
-// 	gpio_set_direction(gpioNo, GPIO_MODE_INPUT);
-// 	gpio_pulldown_en(gpioNo);
-// }
-
 void freeMem()
 {
     // for (int i = 0; i < 256; i++)
@@ -261,11 +292,11 @@ esp_err_t menuInit()
     lineMax             = 0;
     yStretch            = 0;
     xStretch            = 0;
-    printf("Reading rom list\n");
+    ESP_LOGI(TAG, "Reading rom list\n");
     initRomList();
     setLineMax(entryCount);
-    printf("Decoding image\n");
+    ESP_LOGI(TAG, "Decoding image\n");
     int ret = decode_image(&pixels);
-    printf("decode returned %d\n", ret);
+    ESP_LOGI(TAG, "decode returned %d\n", ret);
     return ret;
 }

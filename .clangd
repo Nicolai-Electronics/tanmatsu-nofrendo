@@ -4,3 +4,5 @@ CompileFlags:
     - -fstrict-volatile-bitfields
     - -fno-tree-switch-conversion
     - -march=rv32imafc_zicsr_zifencei_xesppie
+    - -fanalyzer
+    - -fno-analyzer

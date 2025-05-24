@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -26,48 +26,48 @@
 #ifndef _NES_PPU_H_
 #define _NES_PPU_H_
 
-#include "../bitmap.h"
+#include <bitmap.h>
 
 /* PPU register defines */
-#define  PPU_CTRL0            0x2000
-#define  PPU_CTRL1            0x2001
-#define  PPU_STAT             0x2002
-#define  PPU_OAMADDR          0x2003
-#define  PPU_OAMDATA          0x2004
-#define  PPU_SCROLL           0x2005
-#define  PPU_VADDR            0x2006
-#define  PPU_VDATA            0x2007
+#define PPU_CTRL0   0x2000
+#define PPU_CTRL1   0x2001
+#define PPU_STAT    0x2002
+#define PPU_OAMADDR 0x2003
+#define PPU_OAMDATA 0x2004
+#define PPU_SCROLL  0x2005
+#define PPU_VADDR   0x2006
+#define PPU_VDATA   0x2007
 
-#define  PPU_OAMDMA           0x4014
-#define  PPU_JOY0             0x4016
-#define  PPU_JOY1             0x4017
+#define PPU_OAMDMA 0x4014
+#define PPU_JOY0   0x4016
+#define PPU_JOY1   0x4017
 
 /* $2000 */
-#define  PPU_CTRL0F_NMI       0x80
-#define  PPU_CTRL0F_OBJ16     0x20
-#define  PPU_CTRL0F_BGADDR    0x10
-#define  PPU_CTRL0F_OBJADDR   0x08
-#define  PPU_CTRL0F_ADDRINC   0x04
-#define  PPU_CTRL0F_NAMETAB   0x03
+#define PPU_CTRL0F_NMI     0x80
+#define PPU_CTRL0F_OBJ16   0x20
+#define PPU_CTRL0F_BGADDR  0x10
+#define PPU_CTRL0F_OBJADDR 0x08
+#define PPU_CTRL0F_ADDRINC 0x04
+#define PPU_CTRL0F_NAMETAB 0x03
 
 /* $2001 */
-#define  PPU_CTRL1F_OBJON     0x10
-#define  PPU_CTRL1F_BGON      0x08
-#define  PPU_CTRL1F_OBJMASK   0x04
-#define  PPU_CTRL1F_BGMASK    0x02
+#define PPU_CTRL1F_OBJON   0x10
+#define PPU_CTRL1F_BGON    0x08
+#define PPU_CTRL1F_OBJMASK 0x04
+#define PPU_CTRL1F_BGMASK  0x02
 
 /* $2002 */
-#define  PPU_STATF_VBLANK     0x80
-#define  PPU_STATF_STRIKE     0x40
-#define  PPU_STATF_MAXSPRITE  0x20
+#define PPU_STATF_VBLANK    0x80
+#define PPU_STATF_STRIKE    0x40
+#define PPU_STATF_MAXSPRITE 0x20
 
 /* Sprite attribute byte bitmasks */
-#define  OAMF_VFLIP           0x80
-#define  OAMF_HFLIP           0x40
-#define  OAMF_BEHIND          0x20
+#define OAMF_VFLIP  0x80
+#define OAMF_HFLIP  0x40
+#define OAMF_BEHIND 0x20
 
 /* Maximum number of sprites per horizontal scanline */
-#define  PPU_MAXSPRITE        8
+#define PPU_MAXSPRITE 8
 
 /* some mappers do *dumb* things */
 typedef void (*ppulatchfunc_t)(uint32_t address, uint8_t value);
@@ -75,51 +75,50 @@ typedef void (*ppuvromswitch_t)(uint8_t value);
 
 typedef struct ppu_s
 {
-   /* big nasty memory chunks */
-   uint8_t nametab[0x1000];
-   uint8_t oam[256];
-   uint8_t palette[32];
-   uint8_t *page[16];
+    /* big nasty memory chunks */
+    uint8_t  nametab[0x1000];
+    uint8_t  oam[256];
+    uint8_t  palette[32];
+    uint8_t* page[16];
 
-   /* hardware registers */
-   uint8_t ctrl0, ctrl1, stat, oam_addr;
-   uint32_t vaddr, vaddr_latch;
-   int tile_xofs, flipflop;
-   int vaddr_inc;
-   uint32_t tile_nametab;
+    /* hardware registers */
+    uint8_t  ctrl0, ctrl1, stat, oam_addr;
+    uint32_t vaddr, vaddr_latch;
+    int      tile_xofs, flipflop;
+    int      vaddr_inc;
+    uint32_t tile_nametab;
 
-   uint8_t obj_height;
-   uint32_t obj_base, bg_base;
+    uint8_t  obj_height;
+    uint32_t obj_base, bg_base;
 
-   bool bg_on, obj_on;
-   bool obj_mask, bg_mask;
-   
-   uint8_t latch, vdata_latch;
-   uint8_t strobe;
+    bool bg_on, obj_on;
+    bool obj_mask, bg_mask;
 
-   bool strikeflag;
-   uint32_t strike_cycle;
+    uint8_t latch, vdata_latch;
+    uint8_t strobe;
 
-   /* callbacks for naughty mappers */
-   ppulatchfunc_t latchfunc;
-   ppuvromswitch_t vromswitch;
+    bool     strikeflag;
+    uint32_t strike_cycle;
 
-   /* copy of our current palette */
-   rgb_t curpal[256];
+    /* callbacks for naughty mappers */
+    ppulatchfunc_t  latchfunc;
+    ppuvromswitch_t vromswitch;
 
-   bool vram_accessible;
+    /* copy of our current palette */
+    rgb_t curpal[256];
 
-   bool vram_present;
-   bool drawsprites;
+    bool vram_accessible;
+
+    bool vram_present;
+    bool drawsprites;
 } ppu_t;
-
 
 /* TODO: should use this pointers */
 extern void ppu_setlatchfunc(ppulatchfunc_t func);
 extern void ppu_setvromswitch(ppuvromswitch_t func);
 
-extern void ppu_getcontext(ppu_t *dest_ppu);
-extern void ppu_setcontext(ppu_t *src_ppu);
+extern void ppu_getcontext(ppu_t* dest_ppu);
+extern void ppu_setcontext(ppu_t* src_ppu);
 
 /* Mirroring */
 /* TODO: this is only used bloody once */
@@ -127,33 +126,32 @@ extern void ppu_mirrorhipages(void);
 
 extern void ppu_mirror(int nt1, int nt2, int nt3, int nt4);
 
-extern void ppu_setpage(int size, int page_num, uint8_t *location);
-extern uint8_t *ppu_getpage(int page);
-
+extern void     ppu_setpage(int size, int page_num, uint8_t* location);
+extern uint8_t* ppu_getpage(int page);
 
 /* control */
 extern void ppu_reset(int reset_type);
 extern bool ppu_enabled(void);
-extern void ppu_scanline(bitmap_t *bmp, int scanline, bool draw_flag);
+extern void ppu_scanline(bitmap_t* bmp, int scanline, bool draw_flag);
 extern void ppu_endscanline(int scanline);
 extern void ppu_checknmi();
 
-extern ppu_t *ppu_create(void);
-extern void ppu_destroy(ppu_t **ppu);
+extern ppu_t* ppu_create(void);
+extern void   ppu_destroy(ppu_t** ppu);
 
 /* IO */
 extern uint8_t ppu_read(uint32_t address);
-extern int ppu_write(uint32_t address, uint8_t value);
+extern int     ppu_write(uint32_t address, uint8_t value);
 extern uint8_t ppu_readhigh(uint32_t address);
-extern int ppu_writehigh(uint32_t address, uint8_t value);
+extern int     ppu_writehigh(uint32_t address, uint8_t value);
 
 /* rendering */
-extern void ppu_setpal(ppu_t *src_ppu, rgb_t *pal);
-extern void ppu_setdefaultpal(ppu_t *src_ppu);
+extern void ppu_setpal(ppu_t* src_ppu, rgb_t* pal);
+extern void ppu_setdefaultpal(ppu_t* src_ppu);
 
 /* bleh */
-extern void ppu_dumppattern(bitmap_t *bmp, int table_num, int x_loc, int y_loc, int col);
-extern void ppu_dumpoam(bitmap_t *bmp, int x_loc, int y_loc);
+extern void ppu_dumppattern(bitmap_t* bmp, int table_num, int x_loc, int y_loc, int col);
+extern void ppu_dumpoam(bitmap_t* bmp, int x_loc, int y_loc);
 extern void ppu_displaysprites(bool display);
 
 #endif /* _NES_PPU_H_ */

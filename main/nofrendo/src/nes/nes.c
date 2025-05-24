@@ -24,17 +24,15 @@
 */
 
 #include "nes.h"
-#include "../cpu/nes6502.h"
 #include "esp_err.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nes_mmc.h"
 #include "nes_ppu.h"
 #include "nes_rom.h"
-#include "soc/timer_group_reg.h"
-#include "soc/timer_group_struct.h"
 #include <gui.h>
 #include <log.h>
+#include <nes6502.h>
 #include <nes_apu.h>
 #include <nofrendo.h>
 #include <noftypes.h>

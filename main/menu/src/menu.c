@@ -9,7 +9,7 @@
 #include "esp_err.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
+#include "freertos/FreeRTOS.h" // IWYU pragma: keep
 #include "freertos/task.h"
 #include "kbdcontroller.h"
 #include "sdcard.h"
@@ -79,6 +79,10 @@ static void send_frame(uint16_t* fb_in)
 
 static void initRenderBuffers(void)
 {
+    if (prescale_fb != NULL)
+    {
+        return;
+    }
     // Get the MIPI output buffer
     ESP_LOGD(TAG, "Get MIPI buffer");
     mipi_init();

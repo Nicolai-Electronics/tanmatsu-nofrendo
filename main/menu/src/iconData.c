@@ -178,7 +178,28 @@ static int const megaman[15][16] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0
                                     {1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 1},
                                     {0, (31 * 1024 + 0x8000), (31 * 1024 + 31 + 0x8000), (30 * 32 + 28 + 2 * 1024 + 0x8000), 0xFFFF}};
 
-int getIconPixel(char actChar, int xMod, int yMod, int colorCycle)
+/**
+ * @brief Converts a 16-bit color value from a custom format (MSB=? + 5 bits Blue + 5 bits Red + 5 bits Green) to 565 RGB format.
+ *
+ * This function takes a 16-bit color value in the specified format and converts it to the standard 565 RGB format.
+ * Basically to lazy to rewrite the colors in the data above.
+ *
+ * @param rgb555 The 16-bit color value in the custom format.
+ * @return The converted 16-bit color value in 565 RGB format.
+ */
+static uint16_t convertBRG555toRGB565(uint16_t brg555)
+{
+    uint16_t green = (brg555 & 0x001F);       // Extract red (5 bits)
+    uint16_t red   = (brg555 & 0x03E0) >> 5;  // Extract green (5 bits)
+    uint16_t blue  = (brg555 & 0x7C00) >> 10; // Extract blue (5 bits)
+
+    // Expand green to 6 bits
+    green = green << 1;
+
+    return (red << 11) | (green << 5) | blue;
+}
+
+int getIconPixel_brg(char actChar, int xMod, int yMod, int colorCycle)
 {
     int colorNumber = 0;
 
@@ -268,4 +289,12 @@ int getIconPixel(char actChar, int xMod, int yMod, int colorCycle)
         }
     }
     return 992;
+}
+
+int getIconPixel(char actChar, int xMod, int yMod, int colorCycle)
+{
+    static int pixval = 0;
+
+    pixval = getIconPixel_brg(actChar, xMod, yMod, colorCycle);
+    return convertBRG555toRGB565(pixval);
 }
