@@ -31,8 +31,7 @@
 static int32_t fds_incsize = 0;
 
 /* mix sound channels together */
-static int32_t fds_process(void)
-{
+static int32_t fds_process(void) {
     int32_t output;
     output = 0;
 
@@ -40,15 +39,13 @@ static int32_t fds_process(void)
 }
 
 /* write to registers */
-static void fds_write(uint32_t address, uint8_t value)
-{
+static void fds_write(uint32_t address, uint8_t value) {
     UNUSED(address);
     UNUSED(value);
 }
 
 /* reset state of vrcvi sound channels */
-static void fds_reset(void)
-{
+static void fds_reset(void) {
     apu_t apu;
 
     apu_getcontext(&apu);

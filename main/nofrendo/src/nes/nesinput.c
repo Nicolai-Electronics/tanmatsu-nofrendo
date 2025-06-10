@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -23,161 +23,147 @@
 ** $Id: nesinput.c,v 1.2 2001/04/27 14:37:11 neil Exp $
 */
 
-#include <noftypes.h>
-#include <nesinput.h>
 #include <log.h>
+#include <nesinput.h>
+#include <noftypes.h>
 
 /* TODO: make a linked list of inputs sources, so they
 **       can be removed if need be
 */
 
-static nesinput_t *nes_input[MAX_CONTROLLERS];
-static int active_entries = 0;
+static nesinput_t* nes_input[MAX_CONTROLLERS];
+static int         active_entries = 0;
 
 /* read counters */
 static int pad0_readcount, pad1_readcount, ppad_readcount, ark_readcount;
 
+static int retrieve_type(int type) {
+    int i, value = 0;
 
-static int retrieve_type(int type)
-{
-   int i, value = 0;
+    for (i = 0; i < active_entries; i++) {
+        ASSERT(nes_input[i]);
 
-   for (i = 0; i < active_entries; i++)
-   {
-      ASSERT(nes_input[i]);
+        if (type == nes_input[i]->type)
+            value |= nes_input[i]->data;
+    }
 
-      if (type == nes_input[i]->type)
-         value |= nes_input[i]->data;
-   }
-
-   return value;
+    return value;
 }
 
-static uint8_t get_pad0(void)
-{
-   uint8_t value;
+static uint8_t get_pad0(void) {
+    uint8_t value;
 
-   value = (uint8_t) retrieve_type(INP_JOYPAD0);
+    value = (uint8_t)retrieve_type(INP_JOYPAD0);
 
-   /* mask out left/right simultaneous keypresses */
-   if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
-      value &= ~(INP_PAD_UP | INP_PAD_DOWN);
+    /* mask out left/right simultaneous keypresses */
+    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
+        value &= ~(INP_PAD_UP | INP_PAD_DOWN);
 
-   if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
-      value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
+    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
+        value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
 
-   /* return (0x40 | value) due to bus conflicts */
-   return (0x40 | ((value >> pad0_readcount++) & 1));
+    /* return (0x40 | value) due to bus conflicts */
+    return (0x40 | ((value >> pad0_readcount++) & 1));
 }
 
-static uint8_t get_pad1(void)
-{
-   uint8_t value;
+static uint8_t get_pad1(void) {
+    uint8_t value;
 
-   value = (uint8_t) retrieve_type(INP_JOYPAD1);
+    value = (uint8_t)retrieve_type(INP_JOYPAD1);
 
-   /* mask out left/right simultaneous keypresses */
-   if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
-      value &= ~(INP_PAD_UP | INP_PAD_DOWN);
+    /* mask out left/right simultaneous keypresses */
+    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
+        value &= ~(INP_PAD_UP | INP_PAD_DOWN);
 
-   if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
-      value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
+    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
+        value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
 
-   /* return (0x40 | value) due to bus conflicts */
-   return (0x40 | ((value >> pad1_readcount++) & 1));
+    /* return (0x40 | value) due to bus conflicts */
+    return (0x40 | ((value >> pad1_readcount++) & 1));
 }
 
-static uint8_t get_zapper(void)
-{
-   return (uint8_t) (retrieve_type(INP_ZAPPER));
+static uint8_t get_zapper(void) {
+    return (uint8_t)(retrieve_type(INP_ZAPPER));
 }
 
-static uint8_t get_powerpad(void)
-{
-   int value;
-   uint8_t ret_val = 0;
-   
-   value = retrieve_type(INP_POWERPAD);
+static uint8_t get_powerpad(void) {
+    int     value;
+    uint8_t ret_val = 0;
 
-   if (((value >> 8) >> ppad_readcount) & 1)
-      ret_val |= 0x10;
-   if (((value & 0xFF) >> ppad_readcount) & 1)
-      ret_val |= 0x08;
+    value = retrieve_type(INP_POWERPAD);
 
-   ppad_readcount++;
+    if (((value >> 8) >> ppad_readcount) & 1)
+        ret_val |= 0x10;
+    if (((value & 0xFF) >> ppad_readcount) & 1)
+        ret_val |= 0x08;
 
-   return ret_val;
+    ppad_readcount++;
+
+    return ret_val;
 }
 
-static uint8_t get_vsdips0(void)
-{
-   return (retrieve_type(INP_VSDIPSW0));
+static uint8_t get_vsdips0(void) {
+    return (retrieve_type(INP_VSDIPSW0));
 }
 
-static uint8_t get_vsdips1(void)
-{
-   return (retrieve_type(INP_VSDIPSW1));
+static uint8_t get_vsdips1(void) {
+    return (retrieve_type(INP_VSDIPSW1));
 }
 
-static uint8_t get_arkanoid(void)
-{
-   uint8_t value = retrieve_type(INP_ARKANOID);
+static uint8_t get_arkanoid(void) {
+    uint8_t value = retrieve_type(INP_ARKANOID);
 
-   if ((value >> (7 - ark_readcount++)) & 1)
-      return 0x02;
-   else
-      return 0;
+    if ((value >> (7 - ark_readcount++)) & 1)
+        return 0x02;
+    else
+        return 0;
 }
 
 /* return input state for all types indicated (can be ORed together) */
-uint8_t input_get(int types)
-{
-   uint8_t value = 0;
+uint8_t input_get(int types) {
+    uint8_t value = 0;
 
-   if (types & INP_JOYPAD0)
-      value |= get_pad0();
-   if (types & INP_JOYPAD1)
-      value |= get_pad1();
-   if (types & INP_ZAPPER)
-      value |= get_zapper();
-   if (types & INP_POWERPAD)
-      value |= get_powerpad();
-   if (types & INP_VSDIPSW0)
-      value |= get_vsdips0();
-   if (types & INP_VSDIPSW1)
-      value |= get_vsdips1();
-   if (types & INP_ARKANOID)
-      value |= get_arkanoid();
+    if (types & INP_JOYPAD0)
+        value |= get_pad0();
+    if (types & INP_JOYPAD1)
+        value |= get_pad1();
+    if (types & INP_ZAPPER)
+        value |= get_zapper();
+    if (types & INP_POWERPAD)
+        value |= get_powerpad();
+    if (types & INP_VSDIPSW0)
+        value |= get_vsdips0();
+    if (types & INP_VSDIPSW1)
+        value |= get_vsdips1();
+    if (types & INP_ARKANOID)
+        value |= get_arkanoid();
 
-   return value;
+    return value;
 }
 
 /* register an input type */
-void input_register(nesinput_t *input)
-{
-   if (NULL == input)
-      return;
+void input_register(nesinput_t* input) {
+    if (NULL == input)
+        return;
 
-   nes_input[active_entries] = input;
-   active_entries++;
+    nes_input[active_entries] = input;
+    active_entries++;
 }
 
-void input_event(nesinput_t *input, int state, int value)
-{
-   ASSERT(input);
+void input_event(nesinput_t* input, int state, int value) {
+    ASSERT(input);
 
-   if (state == INP_STATE_MAKE)
-      input->data |= value;   /* OR it in */
-   else /* break state */
-      input->data &= ~value;  /* mask it out */
+    if (state == INP_STATE_MAKE)
+        input->data |= value;  /* OR it in */
+    else                       /* break state */
+        input->data &= ~value; /* mask it out */
 }
 
-void input_strobe(void)
-{
-   pad0_readcount = 0;
-   pad1_readcount = 0;
-   ppad_readcount = 0;
-   ark_readcount = 0;
+void input_strobe(void) {
+    pad0_readcount = 0;
+    pad1_readcount = 0;
+    ppad_readcount = 0;
+    ark_readcount  = 0;
 }
 
 /*

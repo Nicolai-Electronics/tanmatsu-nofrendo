@@ -4,7 +4,11 @@
 int  kbdReadInput();
 void kbdControllerInit();
 bool getShowMenu();
+int  incVolume();
+int  decVolume();
 int  getBright();
+int  incBright();
+int  decBright();
 int  getVolume();
 bool getShutdown();
 bool isSelectPressed(int ctl);

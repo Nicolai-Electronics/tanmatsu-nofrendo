@@ -35,8 +35,7 @@ static int (*log_func)(const char* string) = NULL;
 
 /* first up: debug versions of calls */
 #ifdef NOFRENDO_DEBUG
-int log_init(void)
-{
+int log_init(void) {
     //   errorlog = fopen("errorlog.txt", "wt");
     //   if (NULL == errorlog)
     //      return (-1);
@@ -44,8 +43,7 @@ int log_init(void)
     return 0;
 }
 
-void log_shutdown(void)
-{
+void log_shutdown(void) {
     /* Snoop around for unallocated blocks */
     mem_checkblocks();
     mem_checkleaks();
@@ -55,8 +53,7 @@ void log_shutdown(void)
     //      fclose(errorlog);
 }
 
-int log_print(const char* string)
-{
+int log_print(const char* string) {
     /* if we have a custom logging function, use that */
     if (NULL != log_func)
         log_func(string);
@@ -68,16 +65,14 @@ int log_print(const char* string)
     return 0;
 }
 
-int log_printf(const char* format, ...)
-{
+int log_printf(const char* format, ...) {
     /* don't allocate on stack every call */
     static char buffer[1024 + 1];
     va_list     arg;
 
     va_start(arg, format);
 
-    if (NULL != log_func)
-    {
+    if (NULL != log_func) {
         vsprintf(buffer, format, arg);
         log_func(buffer);
     }
@@ -90,24 +85,20 @@ int log_printf(const char* format, ...)
 
 #else  /* !NOFRENDO_DEBUG */
 
-int log_init(void)
-{
+int log_init(void) {
     return 0;
 }
 
-void log_shutdown(void)
-{
+void log_shutdown(void) {
 }
 
-int log_print(const char* string)
-{
+int log_print(const char* string) {
     UNUSED(string);
 
     return 0;
 }
 
-int log_printf(const char* format, ...)
-{
+int log_printf(const char* format, ...) {
     // Rewrite this function to see some logging
     // TODO: make inert in the future again.
     va_list args;
@@ -119,13 +110,11 @@ int log_printf(const char* format, ...)
 }
 #endif /* !NOFRENDO_DEBUG */
 
-void log_chain_logfunc(int (*func)(const char* string))
-{
+void log_chain_logfunc(int (*func)(const char* string)) {
     log_func = func;
 }
 
-void log_assert(int expr, int line, const char* file, char* msg)
-{
+void log_assert(int expr, int line, const char* file, char* msg) {
     if (expr)
         return;
 

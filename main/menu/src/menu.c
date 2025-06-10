@@ -70,17 +70,14 @@ static uint16_t* fb_y_pos[240];
 
 #define NO_ROM_SELECTED 9999
 
-static void send_frame(uint16_t* fb_in)
-{
+static void send_frame(uint16_t* fb_in) {
     // TODO: Add the PPA scaler + render code here
     mipi_blit(
         fb_in, MENU_FB_W, MENU_FB_H, 0, 0, 320, 240);
 }
 
-static void initRenderBuffers(void)
-{
-    if (prescale_fb != NULL)
-    {
+static void initRenderBuffers(void) {
+    if (prescale_fb != NULL) {
         return;
     }
     // Get the MIPI output buffer
@@ -94,14 +91,12 @@ static void initRenderBuffers(void)
 
     // Setup the line pointer array
     ESP_LOGD(TAG, "Setup line pointer array");
-    for (int y = 0; y < MENU_FB_H; y++)
-    {
+    for (int y = 0; y < MENU_FB_H; y++) {
         fb_y_pos[y] = prescale_fb + (MENU_FB_W * y);
     }
 }
 
-static void deinitRenderBuffers(void)
-{
+static void deinitRenderBuffers(void) {
     // Free the local render buffer
     ESP_LOGD(TAG, "Free local render buffer");
     heap_caps_free(prescale_fb);
@@ -112,22 +107,18 @@ static void deinitRenderBuffers(void)
 // Show menu until a Rom is selected
 // Because the SPI driver handles transactions in the background, we can calculate the next line
 // while the previous one is being sent.
-static char* selectRomFromMenu()
-{
+static char* selectRomFromMenu() {
     ESP_LOGI(TAG, "Show menu until a Rom is selected");
 
     // Setup the keyboard controller event queue
     kbdControllerInit();
 
-    while (1)
-    {
-        for (int y = 0; y < MENU_FB_H; y++)
-        {
+    while (1) {
+        for (int y = 0; y < MENU_FB_H; y++) {
             // Draw a framebuffer's worth of graphics
             drawRows(fb_y_pos[y], y, 1);
             handleUserInput();
-            if (getSelRom() != NO_ROM_SELECTED)
-            {
+            if (getSelRom() != NO_ROM_SELECTED) {
                 char* filename = (char*)malloc(FILENAME_LENGTH + strlen(SD_CARD_ROM_PATH));
                 filename[0]    = '\0';
                 strcat(filename, SD_CARD_ROM_PATH);
@@ -146,11 +137,9 @@ static char* selectRomFromMenu()
 
 // ledc_channel_config_t ledc_channel;
 
-void initBl()
-{
+void initBl() {
     // Ignore LED 0 as it's the power LED
-    for (uint8_t i = 1; i < 6; i++)
-    {
+    for (uint8_t i = 1; i < 6; i++) {
         set_led_color(i, 0x000000); // Black
     }
     // show_led_colors();
@@ -173,8 +162,7 @@ void initBl()
     // #endif
 }
 
-char* runMenu()
-{
+char* runMenu() {
     ESP_LOGI(TAG, "Init SPI bus\n");
     esp_err_t ret;
     ESP_LOGI(TAG, "Start boot menu init\n");

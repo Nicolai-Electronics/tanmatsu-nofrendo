@@ -40,18 +40,15 @@
 static int state_slot = FIRST_STATE_SLOT;
 
 /* Set the state-save slot to use (0 - 9) */
-void state_setslot(int slot)
-{
+void state_setslot(int slot) {
     /* Don't send a message if we're already at that slot */
-    if (state_slot != slot && slot >= FIRST_STATE_SLOT && slot <= LAST_STATE_SLOT)
-    {
+    if (state_slot != slot && slot >= FIRST_STATE_SLOT && slot <= LAST_STATE_SLOT) {
         state_slot = slot;
         gui_sendmsg(GUI_WHITE, "State slot set to %d", slot);
     }
 }
 
-static int save_baseblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static int save_baseblock(nes_t* state, SNSS_FILE* snssFile) {
     int i;
 
     ASSERT(state);
@@ -89,15 +86,13 @@ static int save_baseblock(nes_t* state, SNSS_FILE* snssFile)
     return 0;
 }
 
-static bool save_vramblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static bool save_vramblock(nes_t* state, SNSS_FILE* snssFile) {
     ASSERT(state);
 
     if (NULL == state->rominfo->vram)
         return -1;
 
-    if (state->rominfo->vram_banks > 2)
-    {
+    if (state->rominfo->vram_banks > 2) {
         log_printf("too many VRAM banks: %d\n", state->rominfo->vram_banks);
         return -1;
     }
@@ -108,8 +103,7 @@ static bool save_vramblock(nes_t* state, SNSS_FILE* snssFile)
     return 0;
 }
 
-static int save_sramblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static int save_sramblock(nes_t* state, SNSS_FILE* snssFile) {
     int  i;
     bool written = false;
     int  sram_length;
@@ -119,10 +113,8 @@ static int save_sramblock(nes_t* state, SNSS_FILE* snssFile)
     sram_length = state->rominfo->sram_banks * SRAM_1K;
 
     /* Check to see if any SRAM was written to */
-    for (i = 0; i < sram_length; i++)
-    {
-        if (state->rominfo->sram[i])
-        {
+    for (i = 0; i < sram_length; i++) {
+        if (state->rominfo->sram[i]) {
             written = true;
             break;
         }
@@ -131,8 +123,7 @@ static int save_sramblock(nes_t* state, SNSS_FILE* snssFile)
     if (false == written)
         return -1;
 
-    if (state->rominfo->sram_banks > 8)
-    {
+    if (state->rominfo->sram_banks > 8) {
         log_printf("Unsupported number of SRAM banks: %d\n", state->rominfo->sram_banks);
         return -1;
     }
@@ -147,8 +138,7 @@ static int save_sramblock(nes_t* state, SNSS_FILE* snssFile)
     return 0;
 }
 
-static int save_soundblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static int save_soundblock(nes_t* state, SNSS_FILE* snssFile) {
     ASSERT(state);
 
     apu_getcontext(state->apu);
@@ -182,8 +172,7 @@ static int save_soundblock(nes_t* state, SNSS_FILE* snssFile)
     return 0;
 }
 
-static int save_mapperblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static int save_mapperblock(nes_t* state, SNSS_FILE* snssFile) {
     int i;
     ASSERT(state);
 
@@ -200,13 +189,10 @@ static int save_mapperblock(nes_t* state, SNSS_FILE* snssFile)
     for (i = 0; i < 4; i++)
         snssFile->mapperBlock.prgPages[i] = (state->cpu->mem_page[(i + 4) * 2] - state->rominfo->rom) >> 13;
 
-    if (state->rominfo->vrom_banks)
-    {
+    if (state->rominfo->vrom_banks) {
         for (i = 0; i < 8; i++)
             snssFile->mapperBlock.chrPages[i] = (ppu_getpage(i) - state->rominfo->vrom + (i * 0x400)) >> 10;
-    }
-    else
-    {
+    } else {
         /* bleh! slight hack */
         for (i = 0; i < 8; i++)
             snssFile->mapperBlock.chrPages[i] = i;
@@ -218,8 +204,7 @@ static int save_mapperblock(nes_t* state, SNSS_FILE* snssFile)
     return 0;
 }
 
-static void load_baseblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static void load_baseblock(nes_t* state, SNSS_FILE* snssFile) {
     int i;
 
     ASSERT(state);
@@ -246,8 +231,7 @@ static void load_baseblock(nes_t* state, SNSS_FILE* snssFile)
     for (i = 0; i < 8; i++)
         state->ppu->palette[i << 2] = state->ppu->palette[0] | 0x80; // BG_TRANS_MASK;
 
-    for (i = 0; i < 4; i++)
-    {
+    for (i = 0; i < 4; i++) {
         state->ppu->page[i + 8] = state->ppu->page[i + 12] =
             state->ppu->nametab + (snssFile->baseBlock.mirrorState[i] * 0x400) - (0x2000 + (i * 0x400));
     }
@@ -269,44 +253,38 @@ static void load_baseblock(nes_t* state, SNSS_FILE* snssFile)
     ppu_write(PPU_VADDR, (uint8_t)(state->ppu->vaddr & 0xFF));
 }
 
-static void load_vramblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static void load_vramblock(nes_t* state, SNSS_FILE* snssFile) {
     ASSERT(state);
 
     ASSERT(snssFile->vramBlock.vramSize <= VRAM_8K); /* can't handle more than this! */
     memcpy(state->rominfo->vram, snssFile->vramBlock.vram, snssFile->vramBlock.vramSize);
 }
 
-static void load_sramblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static void load_sramblock(nes_t* state, SNSS_FILE* snssFile) {
     ASSERT(state);
 
     ASSERT(snssFile->sramBlock.sramSize <= SRAM_8K); /* can't handle more than this! */
     memcpy(state->rominfo->sram, snssFile->sramBlock.sram, snssFile->sramBlock.sramSize);
 }
 
-static void load_controllerblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static void load_controllerblock(nes_t* state, SNSS_FILE* snssFile) {
     UNUSED(state);
     UNUSED(snssFile);
 }
 
-static void load_soundblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static void load_soundblock(nes_t* state, SNSS_FILE* snssFile) {
     int i;
 
     ASSERT(state);
 
-    for (i = 0; i < 0x15; i++)
-    {
+    for (i = 0; i < 0x15; i++) {
         if (i != 0x13) /* do NOT trigger OAM DMA! */
             apu_write(0x4000 + i, snssFile->soundBlock.soundRegisters[i]);
     }
 }
 
 /* TODO: magic numbers galore */
-static void load_mapperblock(nes_t* state, SNSS_FILE* snssFile)
-{
+static void load_mapperblock(nes_t* state, SNSS_FILE* snssFile) {
     int i;
 
     ASSERT(state);
@@ -316,13 +294,10 @@ static void load_mapperblock(nes_t* state, SNSS_FILE* snssFile)
     for (i = 0; i < 4; i++)
         mmc_bankrom(8, 0x8000 + (i * 0x2000), snssFile->mapperBlock.prgPages[i]);
 
-    if (state->rominfo->vrom_banks)
-    {
+    if (state->rominfo->vrom_banks) {
         for (i = 0; i < 8; i++)
             mmc_bankvrom(1, i * 0x400, snssFile->mapperBlock.chrPages[i]);
-    }
-    else
-    {
+    } else {
         ASSERT(state->rominfo->vram);
 
         for (i = 0; i < 8; i++)
@@ -335,8 +310,7 @@ static void load_mapperblock(nes_t* state, SNSS_FILE* snssFile)
     mmc_setcontext(state->mmc);
 }
 
-int state_save(void)
-{
+int state_save(void) {
     SNSS_FILE*       snssFile;
     SNSS_RETURN_CODE status;
     char             fn[PATH_MAX + 1], ext[5];
@@ -359,36 +333,31 @@ int state_save(void)
         goto _error;
 
     /* now get all of our blocks */
-    if (0 == save_baseblock(machine, snssFile))
-    {
+    if (0 == save_baseblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_BASR);
         if (SNSS_OK != status)
             goto _error;
     }
 
-    if (0 == save_vramblock(machine, snssFile))
-    {
+    if (0 == save_vramblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_VRAM);
         if (SNSS_OK != status)
             goto _error;
     }
 
-    if (0 == save_sramblock(machine, snssFile))
-    {
+    if (0 == save_sramblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_SRAM);
         if (SNSS_OK != status)
             goto _error;
     }
 
-    if (0 == save_soundblock(machine, snssFile))
-    {
+    if (0 == save_soundblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_SOUN);
         if (SNSS_OK != status)
             goto _error;
     }
 
-    if (0 == save_mapperblock(machine, snssFile))
-    {
+    if (0 == save_mapperblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_MPRD);
         if (SNSS_OK != status)
             goto _error;
@@ -408,8 +377,7 @@ _error:
     return -1;
 }
 
-int state_load(void)
-{
+int state_load(void) {
     SNSS_FILE*       snssFile;
     SNSS_RETURN_CODE status;
     SNSS_BLOCK_TYPE  block_type;
@@ -434,8 +402,7 @@ int state_load(void)
         goto _error;
 
     /* iterate through all present blocks */
-    for (i = 0; i < snssFile->headerBlock.numberOfBlocks; i++)
-    {
+    for (i = 0; i < snssFile->headerBlock.numberOfBlocks; i++) {
         status = SNSS_GetNextBlockType(&block_type, snssFile);
         if (SNSS_OK != status)
             goto _error;
@@ -444,8 +411,7 @@ int state_load(void)
         if (SNSS_OK != status)
             goto _error;
 
-        switch (block_type)
-        {
+        switch (block_type) {
         case SNSS_BASR:
             load_baseblock(machine, snssFile);
             break;

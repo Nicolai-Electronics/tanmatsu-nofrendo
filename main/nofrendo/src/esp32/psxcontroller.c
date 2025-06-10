@@ -35,8 +35,7 @@ int  inpDelay;
 bool shutdown;
 
 /* Sends and receives a byte from/to the PSX controller using SPI */
-static int psxSendRecv(int send)
-{
+static int psxSendRecv(int send) {
     int          x;
     int          ret = 0;
     volatile int delay;
@@ -53,14 +52,10 @@ static int psxSendRecv(int send)
     GPIO.out_w1tc = (1 << PSX_ATT);
     for (delay = 0; delay < 100; delay++)
         ;
-    for (x = 0; x < 8; x++)
-    {
-        if (send & 1)
-        {
+    for (x = 0; x < 8; x++) {
+        if (send & 1) {
             GPIO.out_w1ts = (1 << PSX_CMD);
-        }
-        else
-        {
+        } else {
             GPIO.out_w1tc = (1 << PSX_CMD);
         }
         DELAY();
@@ -80,14 +75,12 @@ static int psxSendRecv(int send)
 
 bool showMenu;
 
-static void psxDone()
-{
+static void psxDone() {
     DELAY();
     GPIO_REG_WRITE(GPIO_OUT_W1TS_REG, (1 << PSX_ATT));
 }
 
-bool getShowMenu()
-{
+bool getShowMenu() {
     return showMenu;
 }
 
@@ -119,71 +112,55 @@ bool getShowMenu()
 #define MENU_BUTTON    PSX_L1
 #define POWER_BUTTON   PSX_R1
 
-bool isSelectPressed(int ctl)
-{
+bool isSelectPressed(int ctl) {
     return !(ctl & PSX_SELECT);
 }
-bool isStartPressed(int ctl)
-{
+bool isStartPressed(int ctl) {
     return !(ctl & PSX_START);
 }
-bool isUpPressed(int ctl)
-{
+bool isUpPressed(int ctl) {
     return !(ctl & PSX_UP);
 }
-bool isRightPressed(int ctl)
-{
+bool isRightPressed(int ctl) {
     return !(ctl & PSX_RIGHT);
 }
-bool isDownPressed(int ctl)
-{
+bool isDownPressed(int ctl) {
     return !(ctl & PSX_DOWN);
 }
-bool isLeftPressed(int ctl)
-{
+bool isLeftPressed(int ctl) {
     return !(ctl & PSX_LEFT);
 }
-bool isAPressed(int ctl)
-{
+bool isAPressed(int ctl) {
     return !(ctl & A_BUTTON);
 }
-bool isBPressed(int ctl)
-{
+bool isBPressed(int ctl) {
     return !(ctl & B_BUTTON);
 }
-bool isTurboAPressed(int ctl)
-{
+bool isTurboAPressed(int ctl) {
     return !(ctl & TURBO_A_BUTTON);
 }
-bool isTurboBPressed(int ctl)
-{
+bool isTurboBPressed(int ctl) {
     return !(ctl & TURBO_B_BUTTON);
 }
-bool isMenuPressed(int ctl)
-{
+bool isMenuPressed(int ctl) {
     return !(ctl & MENU_BUTTON);
 }
-bool isPowerPressed(int ctl)
-{
+bool isPowerPressed(int ctl) {
     return !(ctl & POWER_BUTTON);
 }
-bool isAnyDirectionPressed(int ctl)
-{
+bool isAnyDirectionPressed(int ctl) {
     return isUpPressed(ctl) || isDownPressed(ctl) || isLeftPressed(ctl) || isRightPressed(ctl);
 }
 
-bool isAnyActionPressed(int ctl)
-{
+bool isAnyActionPressed(int ctl) {
     return isStartPressed(ctl) || isSelectPressed(ctl) || isMenuPressed(ctl) || isPowerPressed(ctl);
 }
 
-bool isAnyFirePressed(int ctl)
-{
+bool isAnyFirePressed(int ctl) {
     return isAPressed(ctl) || isBPressed(ctl) || isTurboAPressed(ctl) || isTurboBPressed(ctl);
 }
 
-bool isAnyPressed(int ctl)
-{
+bool isAnyPressed(int ctl) {
     return isAnyDirectionPressed(ctl) || isAnyActionPressed(ctl) || isAnyFirePressed(ctl);
 }
 
@@ -194,18 +171,15 @@ int turboBSpeed         = 3;
 int MAX_TURBO           = 6;
 int TURBO_COUNTER_RESET = 210;
 
-int getTurboA()
-{
+int getTurboA() {
     return turboASpeed;
 }
 
-int getTurboB()
-{
+int getTurboB() {
     return turboBSpeed;
 }
 
-int psxReadInput()
-{
+int psxReadInput() {
     int b2b1 = 65535;
     if (inpDelay > 0)
         inpDelay--;
@@ -244,15 +218,12 @@ int psxReadInput()
     if (gpio_get_level(CONFIG_HW_GPIO_POWER) == 1)
         b2b1 -= POWER_BUTTON;
 #endif
-    if (isMenuPressed(b2b1) && inpDelay == 0)
-    {
+    if (isMenuPressed(b2b1) && inpDelay == 0) {
         showMenu = !showMenu;
         inpDelay = 20;
     }
-    if (showMenu)
-    {
-        if (inpDelay == 0)
-        {
+    if (showMenu) {
+        if (inpDelay == 0) {
             if (isUpPressed(b2b1) && volume < 4)
                 volume++;
             if (isDownPressed(b2b1) && volume > 0)
@@ -272,9 +243,7 @@ int psxReadInput()
             if (isAnyPressed(b2b1))
                 inpDelay = 15;
         }
-    }
-    else
-    {
+    } else {
         // ! todo: Implement sleep mode for PSX that also works with GPIO code here, disabled for now.
         /*
         if (isPowerPressed(b2b1) && inpDelay > 0)
@@ -305,56 +274,43 @@ int psxReadInput()
         inpDelay += 2;
         */
     }
-    if (!showMenu)
-    {
-        if (turboASpeed > 0 && isTurboAPressed(b2b1))
-        {
+    if (!showMenu) {
+        if (turboASpeed > 0 && isTurboAPressed(b2b1)) {
             b2b1 |= A_BUTTON;
-            if ((turboACounter % (turboASpeed * 2)) == 0)
-            {
+            if ((turboACounter % (turboASpeed * 2)) == 0) {
                 b2b1 -= A_BUTTON;
             }
             turboACounter = (turboACounter + 1) % TURBO_COUNTER_RESET; // 30 is the LCM of numers 1 thru 6
-        }
-        else
-        {
+        } else {
             turboACounter = 0;
         }
 
-        if (turboBSpeed > 0 && isTurboBPressed(b2b1))
-        {
+        if (turboBSpeed > 0 && isTurboBPressed(b2b1)) {
             b2b1 |= B_BUTTON;
-            if ((turboBCounter % (turboBSpeed * 2)) == 0)
-            {
+            if ((turboBCounter % (turboBSpeed * 2)) == 0) {
                 b2b1 -= B_BUTTON;
             }
             turboBCounter = (turboBCounter + 1) % TURBO_COUNTER_RESET; // 30 is the LCM of numers 1 thru 6
-        }
-        else
-        {
+        } else {
             turboBCounter = 0;
         }
     }
     return b2b1;
 }
 
-int getBright()
-{
+int getBright() {
     return bright;
 }
 
-int getVolume()
-{
+int getVolume() {
     return volume;
 }
 
-bool getShutdown()
-{
+bool getShutdown() {
     return shutdown;
 }
 
-void psxcontrollerInit()
-{
+void psxcontrollerInit() {
     printf("Game controller initalizing\n");
 #if CONFIG_HW_CONTROLLER_GPIO
     initGPIO(CONFIG_HW_GPIO_START);
@@ -402,12 +358,9 @@ void psxcontrollerInit()
     psxSendRecv(0x01);
     t = psxSendRecv(0x00);
     psxDone();
-    if (t == 0 || t == 0xff)
-    {
+    if (t == 0 || t == 0xff) {
         printf("No PSX/PS2 controller detected (0x%X). You will not be able to control the game.\n", t);
-    }
-    else
-    {
+    } else {
         printf("PSX controller type 0x%X\n", t);
     }
 #endif
@@ -418,13 +371,11 @@ void psxcontrollerInit()
 
 #else
 
-int psxReadInput()
-{
+int psxReadInput() {
     return 0xFFFF;
 }
 
-void psxcontrollerInit()
-{
+void psxcontrollerInit() {
     printf("PSX controller disabled in menuconfig; no input enabled.\n");
 }
 

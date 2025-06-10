@@ -27,8 +27,7 @@
 #include <noftypes.h>
 
 /* mapper 3: CNROM */
-static void map3_write(uint32_t address, uint8_t value)
-{
+static void map3_write(uint32_t address, uint8_t value) {
     UNUSED(address);
 
     mmc_bankvrom(8, 0x0000, value);

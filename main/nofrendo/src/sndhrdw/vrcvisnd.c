@@ -28,8 +28,7 @@
 #include <noftypes.h>
 #include <string.h>
 
-typedef struct vrcvirectangle_s
-{
+typedef struct vrcvirectangle_s {
     bool enabled;
 
     uint8_t reg[3];
@@ -42,8 +41,7 @@ typedef struct vrcvirectangle_s
     uint8_t duty_flip;
 } vrcvirectangle_t;
 
-typedef struct vrcvisawtooth_s
-{
+typedef struct vrcvisawtooth_s {
     bool enabled;
 
     uint8_t reg[3];
@@ -56,8 +54,7 @@ typedef struct vrcvisawtooth_s
     uint8_t volume;
 } vrcvisawtooth_t;
 
-typedef struct vrcvisnd_s
-{
+typedef struct vrcvisnd_s {
     vrcvirectangle_t rectangle[2];
     vrcvisawtooth_t  saw;
     float            incsize;
@@ -66,16 +63,14 @@ typedef struct vrcvisnd_s
 static vrcvisnd_t vrcvi;
 
 /* VRCVI rectangle wave generation */
-static int32_t vrcvi_rectangle(vrcvirectangle_t* chan)
-{
+static int32_t vrcvi_rectangle(vrcvirectangle_t* chan) {
     /* reg0: 0-3=volume, 4-6=duty cycle
     ** reg1: 8 bits of freq
     ** reg2: 0-3=high freq, 7=enable
     */
 
     chan->accum -= vrcvi.incsize; /* # of clocks per wave cycle */
-    while (chan->accum < 0)
-    {
+    while (chan->accum < 0) {
         chan->accum += chan->freq;
         chan->adder  = (chan->adder + 1) & 0x0F;
     }
@@ -91,22 +86,19 @@ static int32_t vrcvi_rectangle(vrcvirectangle_t* chan)
 }
 
 /* VRCVI sawtooth wave generation */
-static int32_t vrcvi_sawtooth(vrcvisawtooth_t* chan)
-{
+static int32_t vrcvi_sawtooth(vrcvisawtooth_t* chan) {
     /* reg0: 0-5=phase accumulator bits
     ** reg1: 8 bits of freq
     ** reg2: 0-3=high freq, 7=enable
     */
 
     chan->accum -= vrcvi.incsize; /* # of clocks per wav cycle */
-    while (chan->accum < 0)
-    {
+    while (chan->accum < 0) {
         chan->accum      += chan->freq;
         chan->output_acc += chan->volume;
 
         chan->adder++;
-        if (7 == chan->adder)
-        {
+        if (7 == chan->adder) {
             chan->adder      = 0;
             chan->output_acc = 0;
         }
@@ -120,8 +112,7 @@ static int32_t vrcvi_sawtooth(vrcvisawtooth_t* chan)
 }
 
 /* mix vrcvi sound channels together */
-static int32_t vrcvi_process(void)
-{
+static int32_t vrcvi_process(void) {
     int32_t output;
 
     output  = vrcvi_rectangle(&vrcvi.rectangle[0]);
@@ -132,12 +123,10 @@ static int32_t vrcvi_process(void)
 }
 
 /* write to registers */
-static uint32_t vrcvi_write(uint32_t address, uint8_t value)
-{
+static uint32_t vrcvi_write(uint32_t address, uint8_t value) {
     int chan = (address >> 12) - 9;
 
-    switch (address & 0xB003)
-    {
+    switch (address & 0xB003) {
     case 0x9000:
     case 0xA000:
         vrcvi.rectangle[chan].reg[0]    = value;
@@ -181,8 +170,7 @@ static uint32_t vrcvi_write(uint32_t address, uint8_t value)
 }
 
 /* reset state of vrcvi sound channels */
-static void vrcvi_reset(void)
-{
+static void vrcvi_reset(void) {
     int   i;
     apu_t apu;
 
@@ -191,8 +179,7 @@ static void vrcvi_reset(void)
     vrcvi.incsize = apu.cycle_rate;
 
     /* preload regs */
-    for (i = 0; i < 3; i++)
-    {
+    for (i = 0; i < 3; i++) {
         vrcvi_write(0x9000 + i, 0);
         vrcvi_write(0xA000 + i, 0);
         vrcvi_write(0xB000 + i, 0);

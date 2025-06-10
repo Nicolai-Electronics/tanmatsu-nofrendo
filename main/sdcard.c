@@ -26,8 +26,7 @@ sdmmc_host_t        host        = SDMMC_HOST_DEFAULT();
 sdmmc_card_t        card;
 sdmmc_card_t*       mount_card;
 
-esp_err_t registerSdCard()
-{
+esp_err_t registerSdCard() {
     esp_err_t ret;
 
     sd_pwr_ctrl_ldo_config_t ldo_config = {
@@ -36,10 +35,9 @@ esp_err_t registerSdCard()
     sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL;
 
     ret = sd_pwr_ctrl_new_on_chip_ldo(&ldo_config, &pwr_ctrl_handle);
-    if (ret != ESP_OK)
-    {
+    if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to create a new on-chip LDO power control driver");
-        return false;
+        return ret;
     }
     host.pwr_ctrl_handle = pwr_ctrl_handle;
 
@@ -72,8 +70,7 @@ esp_err_t registerSdCard()
                                   &slot_config,
                                   &mount_config,
                                   &mount_card);
-    if (ret != ESP_OK)
-    {
+    if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount SD card: %s", esp_err_to_name(ret));
         return false;
     }
@@ -86,39 +83,31 @@ esp_err_t registerSdCard()
     // Make sure the C64PRG directory exists if it doesn't already exist
     ESP_LOGI(TAG, "Checking if PRG directory exists");
     struct stat st;
-    if (stat(SD_CARD_ROM_PATH, &st) != 0)
-    {
+    if (stat(SD_CARD_ROM_PATH, &st) != 0) {
         // directory does not exist, create it
-        if (mkdir(SD_CARD_ROM_PATH, 0775) != 0)
-        {
+        if (mkdir(SD_CARD_ROM_PATH, 0775) != 0) {
             ESP_LOGE(TAG, "Failed to create directory %s", SD_CARD_ROM_PATH);
             return false;
         }
         ESP_LOGE(TAG, "PRG directory has been created: %s", SD_CARD_ROM_PATH);
-    }
-    else if (!S_ISDIR(st.st_mode))
-    {
+    } else if (!S_ISDIR(st.st_mode)) {
         ESP_LOGE(TAG, "%s is not a directory", SD_CARD_ROM_PATH);
         return false;
-    }
-    else
-    {
+    } else {
         ESP_LOGI(TAG, "Found NES ROM directory: %s", SD_CARD_ROM_PATH);
     }
 
     return ESP_OK;
 }
 
-char* osd_getromdata()
-{
+char* osd_getromdata() {
     char* romdata;
 
     // Open the file
     printf("Reading rom from %s\n", selectedRomFilename);
     FILE* rom      = fopen(selectedRomFilename, "r");
     long  fileSize = -1;
-    if (!rom)
-    {
+    if (!rom) {
         printf("Could not read %s\n", selectedRomFilename);
         return NULL;
     }

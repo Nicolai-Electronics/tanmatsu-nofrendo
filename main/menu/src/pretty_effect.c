@@ -38,47 +38,38 @@ int        selRom;
 bool xStretch;
 bool yStretch;
 
-void setBright(int bright)
-{
+void setBright(int bright) {
     setBr(bright);
 }
 
-bool peGetPixel(char peChar, int pe1, int pe2)
-{
+bool peGetPixel(char peChar, int pe1, int pe2) {
     return cpGetPixel(peChar, pe1, pe2);
 }
 
-bool getYStretch()
-{
+bool getYStretch() {
     return yStretch;
 }
 
-bool getXStretch()
-{
+bool getXStretch() {
     return xStretch;
 }
 
-void setXStretch(bool str)
-{
+void setXStretch(bool str) {
     xStretch = str;
 }
 
-void setYStretch(bool str)
-{
+void setYStretch(bool str) {
     yStretch = str;
 }
-void setLineMax(int lineM)
-{
+void setLineMax(int lineM) {
     lineMax = lineM;
 }
 
-void setSelRom(int selR)
-{
+void setSelRom(int selR) {
     selRom = selR;
 }
 
-int getSelRom()
-{
+int getSelRom() {
     return selRom;
 }
 
@@ -97,8 +88,7 @@ int getSelRom()
  * @param blue  8-bit blue component (0-255)
  * @return      16-bit RGB565 color value
  */
-inline int rgbColor(const uint8_t red, const uint8_t green, const uint8_t blue)
-{
+inline int rgbColor(const uint8_t red, const uint8_t green, const uint8_t blue) {
     // Direct bit manipulation is faster than using a union with bit fields
     // Format: RRRRRGGGGGGBBBBB
     return ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | (blue >> 3);
@@ -112,8 +102,7 @@ inline int rgbColor(const uint8_t red, const uint8_t green, const uint8_t blue)
  *
  * @return A pseudo-random 32-bit unsigned integer.
  */
-static inline uint32_t xorshift32()
-{
+static inline uint32_t xorshift32() {
     static uint32_t state = 12345; // Seed value (can be any non-zero value)
 
     state ^= state << 13;
@@ -123,16 +112,14 @@ static inline uint32_t xorshift32()
     return state;
 }
 
-static inline uint16_t getNoise()
-{
+static inline uint16_t getNoise() {
     whiteN = xorshift32() % 256;
     return rgbColor(whiteN, whiteN, whiteN);
 }
 
 // Display NES EMU splash screen with noise background
 // Grab a rgb16 pixel from the esp32_tiles image, scroll part of it in
-static inline uint16_t bootScreen(int x, int y, int bottomLogoOffset, int initialStaticFrames)
-{
+static inline uint16_t bootScreen(int x, int y, int bottomLogoOffset, int initialStaticFrames) {
     // if (initialStaticFrames > 10)
     //     return getNoise();
     // else if (initialStaticFrames > 0)
@@ -168,44 +155,33 @@ static inline uint16_t bootScreen(int x, int y, int bottomLogoOffset, int initia
 }
 
 // run "boot screen" (intro) and later menu to choose a rom
-static inline uint16_t get_bgnd_pixel(int x, int y, int bottomLogoOffset, int bootTV, int selectedIdx)
-{
-    if (splashScreenTimer > 0)
-    {
+static inline uint16_t get_bgnd_pixel(int x, int y, int bottomLogoOffset, int bootTV, int selectedIdx) {
+    if (splashScreenTimer > 0) {
         return bootScreen(x, y, bottomLogoOffset, bootTV);
-    }
-    else
-    {
+    } else {
         return getCharPixel(x, y, colorCycle, selectedIdx);
     }
 }
 
 #define DEFAULT_MENU_DELAY 1000
 // Deal with user activity during boot screen and menu
-void handleUserInput()
-{
+void handleUserInput() {
     if (inputDelay > 0)
         inputDelay -= 1;
     int input = kbdReadInput();
-    if (splashScreenTimer > 0)
-    {
-        if (isAnyPressed(input))
-        {
+    if (splashScreenTimer > 0) {
+        if (isAnyPressed(input)) {
             // Immediately cancel splashscreen
             ESP_LOGI(TAG, "Cancelling animation\n");
             splashScreenTimer = 0;
             inputDelay        = DEFAULT_MENU_DELAY;
         }
-    }
-    else if (inputDelay <= 0)
-    {
-        if (isUpPressed(input) && selectedIdx > 0)
-        {
+    } else if (inputDelay <= 0) {
+        if (isUpPressed(input) && selectedIdx > 0) {
             selectedIdx--;
             inputDelay = DEFAULT_MENU_DELAY;
         }
-        if (isDownPressed(input) && selectedIdx < lineMax - 1)
-        {
+        if (isDownPressed(input) && selectedIdx < lineMax - 1) {
             selectedIdx++;
             inputDelay = DEFAULT_MENU_DELAY;
         }
@@ -236,19 +212,15 @@ static int8_t xcomp[320], ycomp[240];*/
 // of the first line to be calculated, rowCount is the amount of rows to calculate. Frame increases by one every time
 // the entire image is displayed; this is used to go to the next frame of animation.
 
-void drawRows(uint16_t* dest, int y, int rowCount)
-{
-    if (y == 0)
-    {
+void drawRows(uint16_t* dest, int y, int rowCount) {
+    if (y == 0) {
         // Change color cycle value every frame, implemented further downstream in the iconData
         colorCycle = (colorCycle + 1) % 30;
         if (initialStaticFrames > 0)
             initialStaticFrames--;
-        if (bottomLogoOffset > 0 && initialStaticFrames <= 0)
-        {
+        if (bottomLogoOffset > 0 && initialStaticFrames <= 0) {
             bottomLogoOffset -= logoMoveSpeed;
-            if (bottomLogoOffset < 0)
-            {
+            if (bottomLogoOffset < 0) {
                 bottomLogoOffset = 0;
             }
         }
@@ -259,8 +231,7 @@ void drawRows(uint16_t* dest, int y, int rowCount)
 
     // for (int yy = y; yy < y + rowCount; yy++)
     // {
-    for (int x = 0; x < 320; x++)
-    {
+    for (int x = 0; x < 320; x++) {
         *dest++ = get_bgnd_pixel(x,
                                  y,
                                  bottomLogoOffset,
@@ -270,8 +241,7 @@ void drawRows(uint16_t* dest, int y, int rowCount)
     // }
 }
 
-void freeMem()
-{
+void freeMem() {
     // for (int i = 0; i < 256; i++)
     // {
     //     free((pixels)[i]);
@@ -281,8 +251,7 @@ void freeMem()
 }
 
 // initialize variables for "timers" and input, gpios and load picture
-esp_err_t menuInit()
-{
+esp_err_t menuInit() {
     initialStaticFrames = 8;
     bottomLogoOffset    = 180;
     logoMoveSpeed       = 8;

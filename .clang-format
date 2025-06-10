@@ -12,7 +12,7 @@ UseTab: "Never"
 NamespaceIndentation: All
 IndentGotoLabels: true
 
-BreakBeforeBraces: Allman
+# BreakBeforeBraces: Allman
 AlignAfterOpenBracket: Align
 AllowShortBlocksOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
@@ -46,16 +46,17 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortEnumsOnASingleLine: false
 KeepEmptyLinesAtTheStartOfBlocks: true
 # BreakBeforeBraces: Custom
-# BraceWrapping:
+BraceWrapping:
 #   AfterClass: false
-#   AfterControlStatement: false
-#   AfterEnum: false
-#   AfterFunction: false
+  AfterCaseLabel: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
 #   AfterNamespace: false
-#   AfterStruct: false
-#   AfterUnion: false
+  AfterStruct: false
+  AfterUnion: false
 #   BeforeCatch: false
-#   BeforeElse: false
+  BeforeElse: false
 # ColumnLimit: 120
 
 # Includes

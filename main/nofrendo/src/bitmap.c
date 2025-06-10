@@ -29,14 +29,12 @@
 #include <stdio.h>
 #include <string.h>
 
-void bmp_clear(const bitmap_t* bitmap, uint8_t color)
-{
+void bmp_clear(const bitmap_t* bitmap, uint8_t color) {
     memset(bitmap->data, color, bitmap->pitch * bitmap->height);
 }
 
 static bitmap_t* _make_bitmap(uint8_t* data_addr, bool hw, int width,
-                              int height, int pitch, int overdraw)
-{
+                              int height, int pitch, int overdraw) {
     bitmap_t* bitmap;
     int       i;
 
@@ -66,8 +64,7 @@ static bitmap_t* _make_bitmap(uint8_t* data_addr, bool hw, int width,
 }
 
 /* Allocate and initialize a bitmap structure */
-bitmap_t* bmp_create(int width, int height, int overdraw)
-{
+bitmap_t* bmp_create(int width, int height, int overdraw) {
     uint8_t* addr;
     int      pitch;
 
@@ -80,16 +77,13 @@ bitmap_t* bmp_create(int width, int height, int overdraw)
 }
 
 /* allocate and initialize a hardware bitmap */
-bitmap_t* bmp_createhw(uint8_t* addr, int width, int height, int pitch)
-{
+bitmap_t* bmp_createhw(uint8_t* addr, int width, int height, int pitch) {
     return _make_bitmap(addr, true, width, height, pitch, 0); /* zero overdraw */
 }
 
 /* Deallocate space for a bitmap structure */
-void bmp_destroy(bitmap_t** bitmap)
-{
-    if (*bitmap)
-    {
+void bmp_destroy(bitmap_t** bitmap) {
+    if (*bitmap) {
         if ((*bitmap)->data && false == (*bitmap)->hardware)
             free((*bitmap)->data);
         free(*bitmap);

@@ -28,13 +28,11 @@
 
 /* mapper 231: NINA-07, used in Wally Bear and the NO! Gang */
 
-static void map231_init(void)
-{
+static void map231_init(void) {
     mmc_bankrom(32, 0x8000, MMC_LASTBANK);
 }
 
-static void map231_write(uint32_t address, uint8_t value)
-{
+static void map231_write(uint32_t address, uint8_t value) {
     int bank, vbank;
     UNUSED(address);
 

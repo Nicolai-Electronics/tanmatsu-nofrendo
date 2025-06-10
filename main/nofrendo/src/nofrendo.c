@@ -25,6 +25,7 @@
 */
 
 #include "nofrendo.h"
+#include "esp_log.h"
 #include "event.h"
 #include "gui.h"
 #include "log.h"
@@ -38,14 +39,15 @@
 /* emulated system includes */
 #include "nes/nes.h"
 
+static const char* const TAG = "nofrendo";
+
 /* our global machine structure */
 static struct
 {
     char *   filename, *nextfilename;
     system_t type, nexttype;
 
-    union
-    {
+    union {
         nes_t* nes;
     } machine;
 
@@ -56,13 +58,11 @@ static struct
 
 /* our happy little timer ISR */
 volatile int nofrendo_ticks = 0;
-static void  timer_isr(void)
-{
+static void  timer_isr(void) {
     nofrendo_ticks++;
 }
 
-static void timer_isr_end(void)
-{
+static void timer_isr_end(void) {
 } /* code marker for djgpp */
 
 // static void shutdown_everything(void)
@@ -86,10 +86,8 @@ static void timer_isr_end(void)
 // }
 
 /* End the current context */
-void main_eject(void)
-{
-    switch (console.type)
-    {
+void main_eject(void) {
+    switch (console.type) {
     case system_nes:
         nes_poweroff();
         nes_destroy(&(console.machine.nes));
@@ -99,8 +97,7 @@ void main_eject(void)
         break;
     }
 
-    if (NULL != console.filename)
-    {
+    if (NULL != console.filename) {
         free(console.filename);
         console.filename = NULL;
     }
@@ -108,15 +105,13 @@ void main_eject(void)
 }
 
 /* Act on the user's quit requests */
-void main_quit(void)
-{
+void main_quit(void) {
     console.quit = true;
 
     main_eject();
 
     /* if there's a pending filename / system, clear */
-    if (NULL != console.nextfilename)
-    {
+    if (NULL != console.nextfilename) {
         free(console.nextfilename);
         console.nextfilename = NULL;
     }
@@ -124,8 +119,7 @@ void main_quit(void)
 }
 
 /* brute force system auto detection */
-static system_t detect_systemtype(const char* filename)
-{
+static system_t detect_systemtype(const char* filename) {
     if (NULL == filename)
         return system_unknown;
 
@@ -136,8 +130,7 @@ static system_t detect_systemtype(const char* filename)
     return system_unknown;
 }
 
-static int install_timer(int hertz)
-{
+static int install_timer(int hertz) {
     return osd_installtimer(hertz, (void*)timer_isr,
                             (int)timer_isr_end - (int)timer_isr,
                             (void*)&nofrendo_ticks,
@@ -145,8 +138,7 @@ static int install_timer(int hertz)
 }
 
 /* This assumes there is no current context */
-static int internal_insert(const char* filename, system_t type)
-{
+static int internal_insert(const char* filename, system_t type) {
     /* autodetect system type? */
     if (system_autodetect == type)
         type = detect_systemtype(filename);
@@ -157,15 +149,13 @@ static int internal_insert(const char* filename, system_t type)
     /* set up the event system for this system type */
     event_set_system(type);
 
-    switch (console.type)
-    {
+    switch (console.type) {
     case system_nes:
         gui_setrefresh(NES_REFRESH_RATE);
 
         console.machine.nes = nes_create();
-        if (NULL == console.machine.nes)
-        {
-            log_printf("Failed to create NES instance.\n");
+        if (NULL == console.machine.nes) {
+            ESP_LOGI(TAG, "Failed to create NES instance.");
             return -1;
         }
 
@@ -182,7 +172,7 @@ static int internal_insert(const char* filename, system_t type)
 
     case system_unknown:
     default:
-        log_printf("system type unknown, playing nofrendo NES intro.\n");
+        ESP_LOGI(TAG, "system type unknown, playing nofrendo NES intro.");
         if (NULL != console.filename)
             free(console.filename);
 
@@ -194,16 +184,14 @@ static int internal_insert(const char* filename, system_t type)
 }
 
 /* This tells main_loop to load this next image */
-void main_insert(const char* filename, system_t type)
-{
+void main_insert(const char* filename, system_t type) {
     console.nextfilename = strdup(filename);
     console.nexttype     = type;
 
     main_eject();
 }
 
-int nofrendo_main(int argc, char* argv[])
-{
+int nofrendo_main(int argc, char* argv[]) {
     /* initialize our system structure */
     console.filename     = NULL;
     console.nextfilename = NULL;
@@ -221,8 +209,7 @@ int nofrendo_main(int argc, char* argv[])
 }
 
 /* This is the final leg of main() */
-int main_loop(const char* filename, system_t type)
-{
+int main_loop(const char* filename, system_t type) {
     vidinfo_t video;
 
     /* register shutdown, in case of assertions, etc. */
@@ -240,13 +227,12 @@ int main_loop(const char* filename, system_t type)
     osd_getvideoinfo(&video);
     if (vid_init(video.default_width, video.default_height, video.driver))
         return -1;
-    printf("vid_init done\n");
+    ESP_LOGI(TAG, "vid_init done");
 
     console.nextfilename = strdup(filename);
     console.nexttype     = type;
 
-    while (false == console.quit)
-    {
+    while (false == console.quit) {
         if (internal_insert(console.nextfilename, console.nexttype))
             return 1;
     }

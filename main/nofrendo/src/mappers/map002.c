@@ -28,8 +28,7 @@
 #include <stdint.h>
 
 /* mapper 2: UNROM */
-static void map2_write(uint32_t address, uint8_t value)
-{
+static void map2_write(uint32_t address, uint8_t value) {
     UNUSED(address);
 
     mmc_bankrom(16, 0x8000, value);

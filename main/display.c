@@ -2,6 +2,7 @@
 #include "display.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "kbdcontroller.h"
 
 static const char* TAG = "display";
 
@@ -13,12 +14,10 @@ static size_t                       display_h_res        = 0;
 static size_t                       display_v_res        = 0;
 static lcd_color_rgb_pixel_format_t display_color_format = LCD_COLOR_FMT_RGB565;
 
-void init_display(void)
-{
+void init_display(void) {
     ESP_LOGI(TAG, "Initializing display");
 
-    if (mipi_fb != NULL)
-    {
+    if (mipi_fb != NULL) {
         ESP_LOGW(TAG, "MIPI display framebuffer already allocated");
         return;
     }
@@ -29,13 +28,15 @@ void init_display(void)
     res = bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format);
     ESP_ERROR_CHECK(res); // Check that the display parameters have been initialized
 
+    // Set the brightness to the configured value
+    bsp_display_set_backlight_brightness(getBright());
+
     size_t buffer_size = display_h_res * display_v_res * sizeof(uint16_t);
     mipi_fb            = (uint16_t*)heap_caps_malloc(
         buffer_size,
         MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
 }
 
-uint16_t* get_mipi_framebuffer(void)
-{
+uint16_t* get_mipi_framebuffer(void) {
     return mipi_fb;
 }

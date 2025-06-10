@@ -109,8 +109,7 @@ typedef struct
 // }
 
 // Decode the embedded image into pixel lines that can be used with the rest of the logic.
-esp_err_t decode_image(uint16_t*** pixels)
-{
+esp_err_t decode_image(uint16_t*** pixels) {
     // char*   work = NULL;
     // int     r;
     // JDEC    decoder;

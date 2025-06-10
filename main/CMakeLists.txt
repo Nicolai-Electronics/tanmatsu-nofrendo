@@ -45,6 +45,7 @@ idf_component_register(
         "nofrendo/src/esp32/mipi_gfx.c"
         "nofrendo/src/esp32/video_audio.c"
         "nofrendo/src/esp32/kbdcontroller.c"
+        "nofrendo/src/esp32/emumenu.c"
 
         "nofrendo/src/cpu/dis6502.c"
         "nofrendo/src/cpu/nes6502.c"

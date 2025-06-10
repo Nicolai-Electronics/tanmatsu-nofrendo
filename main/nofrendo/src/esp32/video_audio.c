@@ -58,16 +58,15 @@
 
 static const char* TAG = "video_audio";
 
-int xWidth;
-int yHight;
+static int xWidth;
+static int yHight;
 
 TimerHandle_t timer;
 
 i2s_chan_handle_t i2s_handle;
 
 // Seemingly, this will be called only once. Should call func with a freq of frequency,
-int osd_installtimer(int frequency, void* func, int funcsize, void* counter, int countersize)
-{
+int osd_installtimer(int frequency, void* func, int funcsize, void* counter, int countersize) {
     ESP_LOGI(TAG, "Timer install, freq=%d\n", frequency);
     timer = xTimerCreate("nes", configTICK_RATE_HZ / frequency, pdTRUE, NULL, func);
     xTimerStart(timer, 0);
@@ -85,8 +84,7 @@ static void*  audio_buffer;
 #endif
 
 // Union for left and right audio channel to uint32_t
-union MonoToStereo
-{
+union MonoToStereo {
     uint32_t val;
     struct
     {
@@ -95,12 +93,10 @@ union MonoToStereo
     };
 };
 
-static void do_audio_frame()
-{
+static void do_audio_frame() {
 
 #if CONFIG_SOUND_ENABLED
-    if (!audio_callback || getVolume() <= 0)
-    {
+    if (!audio_callback || getVolume() <= 0) {
         // i2s_zero_dma_buffer(I2S_DEVICE_ID);
         return;
     }
@@ -112,8 +108,7 @@ static void do_audio_frame()
     static size_t             written = -1;
     static union MonoToStereo stereo;
 
-    while (samplesRemaining)
-    {
+    while (samplesRemaining) {
         int size = AUDIO_BUFFER_LENGTH > samplesRemaining ? samplesRemaining : AUDIO_BUFFER_LENGTH;
         // int size = AUDIO_BUFFER_LENGTH;
         apu_process(audio_buffer, size);
@@ -124,8 +119,7 @@ static void do_audio_frame()
         //     uint16_t unsignedSample = sample ^ 0x8000;
         //     bufU[i]                 = unsignedSample;
         // }
-        for (size_t i = 0; i < size; i++)
-        {
+        for (size_t i = 0; i < size; i++) {
             // Convert the union to use int16_t to match the data type
             // Convert sample to unsigned as well
             swapped = (uint16_t)bufS[i] + 0x8000;
@@ -144,28 +138,24 @@ static void do_audio_frame()
 #endif
 }
 
-void osd_setsound(void (*playfunc)(void* buffer, int length))
-{
+void osd_setsound(void (*playfunc)(void* buffer, int length)) {
     // Indicates we should call playfunc() to get more data.
     audio_callback = playfunc;
 }
 
-static void osd_stopsound(void)
-{
+static void osd_stopsound(void) {
     audio_callback = NULL;
     printf("Sound stopped.\n");
     // i2s_stop(I2S_DEVICE_ID);
     // free(audio_buffer);
 }
 
-static int osd_init_sound(void)
-{
+static int osd_init_sound(void) {
 #if CONFIG_SOUND_ENABLED
     ESP_LOGI(TAG, "Initializing BSP audio interface");
     bsp_audio_set_volume(0);
     esp_err_t res = bsp_audio_initialize();
-    if (res != ESP_OK)
-    {
+    if (res != ESP_OK) {
         ESP_LOGE(TAG, "Initializing audio failed");
         return res;
     }
@@ -179,8 +169,7 @@ static int osd_init_sound(void)
     i2s_chan_config_t chan_cfg = (i2s_chan_config_t)I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
 
     res = i2s_new_channel(&chan_cfg, &i2s_handle, NULL);
-    if (res != ESP_OK)
-    {
+    if (res != ESP_OK) {
         ESP_LOGE(TAG, "Initializing I2S channel failed");
         return res;
     }
@@ -205,15 +194,13 @@ static int osd_init_sound(void)
     };
 
     res = i2s_channel_init_std_mode(i2s_handle, &i2s_config);
-    if (res != ESP_OK)
-    {
+    if (res != ESP_OK) {
         ESP_LOGE(TAG, "Configuring I2S channel failed");
         return res;
     }
 
     res = i2s_channel_enable(i2s_handle);
-    if (res != ESP_OK)
-    {
+    if (res != ESP_OK) {
         ESP_LOGE(TAG, "Enabling I2S channel failed");
         return res;
     }
@@ -229,8 +216,7 @@ static int osd_init_sound(void)
     return 0;
 }
 
-void osd_getsoundinfo(sndinfo_t* info)
-{
+void osd_getsoundinfo(sndinfo_t* info) {
     info->sample_rate = AUDIO_SAMPLERATE;
     info->bps         = BITS_PER_SAMPLE; // Internal DAC is only 8-bit anyway
 }
@@ -249,9 +235,10 @@ static void      free_write(int num_dirties, rect_t* dirty_rects);
 static void      custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects);
 static char      fb[1]; // dummy
 
+// Used to synchronize the PPA blit with the main loop
 QueueHandle_t vidQueue;
 
-viddriver_t sdlDriver = {
+viddriver_t ppaDriver = {
     "ESP32 P4 PPA driver", /* name */
     init,                  /* init */
     shutdown,              /* shutdown */
@@ -266,69 +253,60 @@ viddriver_t sdlDriver = {
 
 bitmap_t* myBitmap;
 
-void osd_getvideoinfo(vidinfo_t* info)
-{
+void osd_getvideoinfo(vidinfo_t* info) {
     lcd_color_rgb_pixel_format_t color_fmt;
     esp_err_t                    res = bsp_display_get_parameters(
         &info->default_width,
         &info->default_height,
         &color_fmt);
-    if (res != ESP_OK)
-    {
+    if (res != ESP_OK) {
         printf("Failed to get display parameters: %d\n", res);
         exit(1);
     }
     info->default_width  = DEFAULT_WIDTH;
     info->default_height = DEFAULT_HEIGHT;
-    info->driver         = &sdlDriver;
+    info->driver         = &ppaDriver;
 }
 
 /* flip between full screen and windowed */
-void osd_togglefullscreen(int code)
-{
+void osd_togglefullscreen(int code) {
+    // We don't do Windowed
 }
 
 /* initialise video */
-static int init(int width, int height)
-{
+static int init(int width, int height) {
     return 0;
 }
 
-static void shutdown(void)
-{
+static void shutdown(void) {
 }
 
 /* set a video mode */
-static int set_mode(int width, int height)
-{
+static int set_mode(int width, int height) {
     return 0;
 }
 
 uint16_t DRAM_ATTR myPalette[256];
 
 /* copy nes palette over to hardware */
-static void set_palette(rgb_t* pal)
-{
+static void set_palette(rgb_t* pal) {
     uint16_t c;
 
     int i;
 
-    for (i = 0; i < 256; i++)
-    {
+    for (i = 0; i < 256; i++) {
         c            = (pal[i].b >> 3) + ((pal[i].g >> 2) << 5) + ((pal[i].r >> 3) << 11);
         myPalette[i] = c;
     }
 }
 
 /* clear all frames to a particular color */
-static void clear(uint8_t color)
-{
+static void clear(uint8_t color) {
     //   SDL_FillRect(mySurface, 0, color);
 }
 
 /* acquire the directbuffer for writing */
-static bitmap_t* lock_write(void)
-{
+static bitmap_t* lock_write(void) {
     //   SDL_LockSurface(mySurface);
     myBitmap = bmp_createhw((uint8_t*)fb, xWidth, yHight, xWidth * 2); // DEFAULT_WIDTH, DEFAULT_HEIGHT,
                                                                        // DEFAULT_WIDTH*2);
@@ -336,29 +314,25 @@ static bitmap_t* lock_write(void)
 }
 
 /* release the resource */
-static void free_write(int num_dirties, rect_t* dirty_rects)
-{
+static void free_write(int num_dirties, rect_t* dirty_rects) {
     bmp_destroy(&myBitmap);
 }
 
-static void custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects)
-{
+static void custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects) {
     xQueueSend(vidQueue, &bmp, 0);
     do_audio_frame();
 }
 
 // This runs on core 1.
-static void videoTask(void* arg)
-{
-    int       x, y;
-    bitmap_t* bmp = NULL;
+static void videoTask(void* arg) {
+    static const int x = 0, y = 0;
+    static bitmap_t* bmp = NULL;
 
     xWidth = DEFAULT_WIDTH;
     yHight = DEFAULT_HEIGHT;
-    x      = (DEFAULT_WIDTH - xWidth) / 2;
-    y      = ((DEFAULT_HEIGHT - yHight) / 2);
-    while (1)
-    {
+    // x      = (DEFAULT_WIDTH - xWidth) / 2;
+    // y      = ((DEFAULT_HEIGHT - yHight) / 2);
+    while (1) {
         xQueueReceive(vidQueue, &bmp, portMAX_DELAY);
         mipi_write_frame(x, y, xWidth, yHight, (const uint8_t*)bmp->data, getXStretch(), getYStretch());
         // Reset watchdog timer
@@ -373,13 +347,11 @@ static void videoTask(void* arg)
 ** Input
 */
 
-static void osd_initinput()
-{
+static void osd_initinput() {
     kbdControllerInit();
 }
 
-void osd_getinput(void)
-{
+void osd_getinput(void) {
     // Note: These are in the order of PSX controller bitmasks (see psxcontroller.c)
     const int  ev[16] = {event_joypad1_select,
                          0,
@@ -404,25 +376,22 @@ void osd_getinput(void)
     oldb = b;
     event_t evh;
     //	printf("Input: %x\n", b);
-    for (x = 0; x < 16; x++)
-    {
-        if (chg & 1)
-        {
+    for (x = 0; x < 16; x++) {
+        if (chg & 1) {
             evh = event_get(ev[x]);
-            if (evh)
+            if (evh) {
                 evh((b & 1) ? INP_STATE_BREAK : INP_STATE_MAKE);
+            }
         }
         chg >>= 1;
         b   >>= 1;
     }
 }
 
-static void osd_freeinput(void)
-{
+static void osd_freeinput(void) {
 }
 
-void osd_getmouse(int* x, int* y, int* button)
-{
+void osd_getmouse(int* x, int* y, int* button) {
 }
 
 /*
@@ -430,14 +399,12 @@ void osd_getmouse(int* x, int* y, int* button)
 */
 
 /* this is at the bottom, to eliminate warnings */
-void osd_shutdown()
-{
+void osd_shutdown() {
     osd_stopsound();
     osd_freeinput();
 }
 
-static int logprint(const char* string)
-{
+static int logprint(const char* string) {
     return printf("%s", string);
 }
 
@@ -445,8 +412,7 @@ static int logprint(const char* string)
 ** Startup
 */
 
-int osd_init()
-{
+int osd_init() {
     log_chain_logfunc(logprint);
 
     if (osd_init_sound())

@@ -29,8 +29,7 @@
 #ifdef NES6502_DEBUG
 
 /* addressing modes */
-enum
-{
+enum {
     _imp,
     _acc,
     _rel,
@@ -56,73 +55,59 @@ static uint32_t pc_reg;
 */
 static char disasm_buf[256];
 
-static uint8_t dis_op8(void)
-{
+static uint8_t dis_op8(void) {
     return (nes6502_getbyte(pc_reg + 1));
 }
 
-static uint16_t dis_op16(void)
-{
+static uint16_t dis_op16(void) {
     return (nes6502_getbyte(pc_reg + 1) + (nes6502_getbyte(pc_reg + 2) << 8));
 }
 
-static int dis_show_ind(char* buf)
-{
+static int dis_show_ind(char* buf) {
     return sprintf(buf, "(%04X)  ", dis_op16());
 }
 
-static int dis_show_ind_x(char* buf)
-{
+static int dis_show_ind_x(char* buf) {
     return sprintf(buf, "(%02X,x)  ", dis_op8());
 }
 
-static int dis_show_ind_y(char* buf)
-{
+static int dis_show_ind_y(char* buf) {
     return sprintf(buf, "(%02X),y  ", dis_op8());
 }
 
-static int dis_show_zero_x(char* buf)
-{
+static int dis_show_zero_x(char* buf) {
     return sprintf(buf, " %02X,x   ", dis_op8());
 }
 
-static int dis_show_zero_y(char* buf)
-{
+static int dis_show_zero_y(char* buf) {
     return sprintf(buf, " %02X,y   ", dis_op8());
 }
 
-static int dis_show_abs_y(char* buf)
-{
+static int dis_show_abs_y(char* buf) {
     return sprintf(buf, " %04X,y ", dis_op16());
 }
 
-static int dis_show_abs_x(char* buf)
-{
+static int dis_show_abs_x(char* buf) {
     return sprintf(buf, " %04X,x ", dis_op16());
 }
 
-static int dis_show_zero(char* buf)
-{
+static int dis_show_zero(char* buf) {
     return sprintf(buf, " %02X     ", dis_op8());
 }
 
-static int dis_show_abs(char* buf)
-{
+static int dis_show_abs(char* buf) {
     return sprintf(buf, " %04X   ", dis_op16());
 }
 
-static int dis_show_immediate(char* buf)
-{
+static int dis_show_immediate(char* buf) {
     return sprintf(buf, "#%02X     ", dis_op8());
 }
 
-static int dis_show_acc(char* buf)
-{
+static int dis_show_acc(char* buf) {
     return sprintf(buf, " a      ");
 }
 
-static int dis_show_relative(char* buf)
-{
+static int dis_show_relative(char* buf) {
     int target;
 
     target  = (int8_t)dis_op8();
@@ -130,12 +115,10 @@ static int dis_show_relative(char* buf)
     return sprintf(buf, " %04X   ", target);
 }
 
-static int dis_show_code(char* buf, int optype)
-{
+static int dis_show_code(char* buf, int optype) {
     char* dest = buf + sprintf(buf, "%02X ", nes6502_getbyte(pc_reg));
 
-    switch (optype)
-    {
+    switch (optype) {
     case _imp:
     case _acc:
         dest += sprintf(dest, "      ");
@@ -162,15 +145,13 @@ static int dis_show_code(char* buf, int optype)
     return (int)(dest - buf);
 }
 
-static int dis_show_op(char* buf, char* opstr, int optype)
-{
+static int dis_show_op(char* buf, char* opstr, int optype) {
     char* dest = buf;
 
     dest += dis_show_code(dest, optype);
     dest += sprintf(dest, "%s ", opstr);
 
-    switch (optype)
-    {
+    switch (optype) {
     case _imp:
         dest += sprintf(dest, "        ");
         break;
@@ -215,8 +196,7 @@ static int dis_show_op(char* buf, char* opstr, int optype)
     return (int)(dest - buf);
 }
 
-char* nes6502_disasm(uint32_t PC, uint8_t P, uint8_t A, uint8_t X, uint8_t Y, uint8_t S)
-{
+char* nes6502_disasm(uint32_t PC, uint8_t P, uint8_t A, uint8_t X, uint8_t Y, uint8_t S) {
     char* buf = disasm_buf;
     char* op;
     int   type;
@@ -225,8 +205,7 @@ char* nes6502_disasm(uint32_t PC, uint8_t P, uint8_t A, uint8_t X, uint8_t Y, ui
 
     buf += sprintf(buf, "%04X: ", pc_reg);
 
-    switch (nes6502_getbyte(pc_reg))
-    {
+    switch (nes6502_getbyte(pc_reg)) {
     case 0x00:
         op   = "brk";
         type = _imp;

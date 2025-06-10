@@ -51,31 +51,26 @@
 
 static mmc_t mmc;
 
-rominfo_t* mmc_getinfo(void)
-{
+rominfo_t* mmc_getinfo(void) {
     return mmc.cart;
 }
 
-void mmc_setcontext(mmc_t* src_mmc)
-{
+void mmc_setcontext(mmc_t* src_mmc) {
     ASSERT(src_mmc);
 
     mmc = *src_mmc;
 }
 
-void mmc_getcontext(mmc_t* dest_mmc)
-{
+void mmc_getcontext(mmc_t* dest_mmc) {
     *dest_mmc = mmc;
 }
 
 /* VROM bankswitching */
-void mmc_bankvrom(int size, uint32_t address, int bank)
-{
+void mmc_bankvrom(int size, uint32_t address, int bank) {
     if (0 == mmc.cart->vrom_banks)
         return;
 
-    switch (size)
-    {
+    switch (size) {
     case 1:
         if (bank == MMC_LASTBANK)
             bank = MMC_LAST1KVROM;
@@ -106,14 +101,12 @@ void mmc_bankvrom(int size, uint32_t address, int bank)
 }
 
 /* ROM bankswitching */
-void mmc_bankrom(int size, uint32_t address, int bank)
-{
+void mmc_bankrom(int size, uint32_t address, int bank) {
     nes6502_context mmc_cpu;
 
     nes6502_getcontext(&mmc_cpu);
 
-    switch (size)
-    {
+    switch (size) {
     case 8:
         if (bank == MMC_LASTBANK)
             bank = MMC_LAST8KROM;
@@ -160,12 +153,10 @@ void mmc_bankrom(int size, uint32_t address, int bank)
 }
 
 /* Check to see if this mapper is supported */
-bool mmc_peek(int map_num)
-{
+bool mmc_peek(int map_num) {
     mapintf_t** map_ptr = mappers;
 
-    while (NULL != *map_ptr)
-    {
+    while (NULL != *map_ptr) {
         if ((*map_ptr)->number == map_num)
             return true;
         map_ptr++;
@@ -174,8 +165,7 @@ bool mmc_peek(int map_num)
     return false;
 }
 
-static void mmc_setpages(void)
-{
+static void mmc_setpages(void) {
     log_printf("setting up mapper %d\n", mmc.intf->number);
 
     /* Switch ROM into CPU space, set VROM/VRAM (done for ALL ROMs) */
@@ -183,12 +173,9 @@ static void mmc_setpages(void)
     mmc_bankrom(16, 0xC000, MMC_LASTBANK);
     mmc_bankvrom(8, 0x0000, 0);
 
-    if (mmc.cart->flags & ROM_FLAG_FOURSCREEN)
-    {
+    if (mmc.cart->flags & ROM_FLAG_FOURSCREEN) {
         ppu_mirror(0, 1, 2, 3);
-    }
-    else
-    {
+    } else {
         if (MIRROR_VERT == mmc.cart->mirror)
             ppu_mirror(0, 1, 0, 1);
         else
@@ -197,8 +184,7 @@ static void mmc_setpages(void)
 
     /* if we have no VROM, switch in VRAM */
     /* TODO: fix this hack implementation */
-    if (0 == mmc.cart->vrom_banks)
-    {
+    if (0 == mmc.cart->vrom_banks) {
         ASSERT(mmc.cart->vram);
 
         ppu_setpage(8, 0, mmc.cart->vram);
@@ -207,8 +193,7 @@ static void mmc_setpages(void)
 }
 
 /* Mapper initialization routine */
-void mmc_reset(void)
-{
+void mmc_reset(void) {
     mmc_setpages();
 
     ppu_setlatchfunc(NULL);
@@ -220,19 +205,16 @@ void mmc_reset(void)
     log_printf("reset memory mapper\n");
 }
 
-void mmc_destroy(mmc_t** nes_mmc)
-{
+void mmc_destroy(mmc_t** nes_mmc) {
     if (*nes_mmc)
         free(*nes_mmc);
 }
 
-mmc_t* mmc_create(rominfo_t* rominfo)
-{
+mmc_t* mmc_create(rominfo_t* rominfo) {
     mmc_t*      temp;
     mapintf_t** map_ptr;
 
-    for (map_ptr = mappers; (*map_ptr)->number != rominfo->mapper_number; map_ptr++)
-    {
+    for (map_ptr = mappers; (*map_ptr)->number != rominfo->mapper_number; map_ptr++) {
         if (NULL == *map_ptr)
             return NULL; /* Should *never* happen */
     }

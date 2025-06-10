@@ -187,8 +187,7 @@ static int const megaman[15][16] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0
  * @param rgb555 The 16-bit color value in the custom format.
  * @return The converted 16-bit color value in 565 RGB format.
  */
-static uint16_t convertBRG555toRGB565(uint16_t brg555)
-{
+static uint16_t convertBRG555toRGB565(uint16_t brg555) {
     uint16_t green = (brg555 & 0x001F);       // Extract red (5 bits)
     uint16_t red   = (brg555 & 0x03E0) >> 5;  // Extract green (5 bits)
     uint16_t blue  = (brg555 & 0x7C00) >> 10; // Extract blue (5 bits)
@@ -199,56 +198,45 @@ static uint16_t convertBRG555toRGB565(uint16_t brg555)
     return (red << 11) | (green << 5) | blue;
 }
 
-int getIconPixel_brg(char actChar, int xMod, int yMod, int colorCycle)
-{
+int getIconPixel_brg(char actChar, int xMod, int yMod, int colorCycle) {
     int colorNumber = 0;
 
-    if (yMod > 13)
-    {
+    if (yMod > 13) {
         yMod = 13;
     }
-    if (actChar == ';')
-    {
+    if (actChar == ';') {
         colorNumber = coin[yMod][xMod];
         return coin[14][colorNumber * 3 + ((colorCycle) % 3)];
     }
-    if (actChar == '/')
-    {
+    if (actChar == '/') {
         colorNumber = megaman[yMod][xMod];
         return megaman[14][colorNumber];
     }
-    if (actChar == '$')
-    {
+    if (actChar == '$') {
         colorNumber = mario1[yMod][xMod];
         return mario1[14][colorNumber];
     }
-    if (actChar == '%')
-    {
+    if (actChar == '%') {
         colorNumber = luigi[yMod][xMod];
         return luigi[14][colorNumber];
     }
-    if (actChar == '"')
-    {
+    if (actChar == '"') {
         colorNumber = mario3[yMod][xMod];
         return mario3[14][colorNumber];
     }
-    if (actChar == '=')
-    {
+    if (actChar == '=') {
         colorNumber = link1[yMod][xMod];
         return link1[14][colorNumber];
     }
-    if (actChar == '+')
-    {
+    if (actChar == '+') {
         colorNumber = link2[yMod][xMod];
         return link2[14][colorNumber];
     }
-    if (actChar == '}')
-    {
+    if (actChar == '}') {
         colorNumber = questBox[yMod][xMod];
         return questBox[14][colorNumber * 3 + ((colorCycle) % 3)];
     }
-    if (actChar == '{')
-    {
+    if (actChar == '{') {
         colorNumber = pacman[yMod][xMod];
         // printf("mod3%d\n",(change/2)%3);
         if (colorNumber == 0)
@@ -257,28 +245,22 @@ int getIconPixel_brg(char actChar, int xMod, int yMod, int colorCycle)
             return pacman[14][0];
         else if (colorNumber == 5)
             return pacman[14][2];
-        else
-        {
-            if (colorCycle % 3 == 0)
-            {
+        else {
+            if (colorCycle % 3 == 0) {
                 if (colorNumber == 4)
                     return pacman[14][2];
                 if (colorNumber == 2)
                     return pacman[14][1];
                 if (colorNumber == 3)
                     return pacman[14][1];
-            }
-            else if (colorCycle % 3 == 1)
-            {
+            } else if (colorCycle % 3 == 1) {
                 if (colorNumber == 4)
                     return pacman[14][2];
                 if (colorNumber == 2)
                     return pacman[14][0];
                 if (colorNumber == 3)
                     return pacman[14][1];
-            }
-            else
-            {
+            } else {
                 if (colorNumber == 4)
                     return pacman[14][0];
                 if (colorNumber == 2)
@@ -291,8 +273,7 @@ int getIconPixel_brg(char actChar, int xMod, int yMod, int colorCycle)
     return 992;
 }
 
-int getIconPixel(char actChar, int xMod, int yMod, int colorCycle)
-{
+int getIconPixel(char actChar, int xMod, int yMod, int colorCycle) {
     static int pixval = 0;
 
     pixval = getIconPixel_brg(actChar, xMod, yMod, colorCycle);

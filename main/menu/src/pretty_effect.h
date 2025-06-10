@@ -1,7 +1,7 @@
 #pragma once
-#include <stdint.h>
 #include "esp_err.h"
-
+#include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @brief Calculate and disaply a set of rows to the screen
@@ -10,7 +10,7 @@
  * @param y Starting y coordinate of the chunk of lines.
  * @param rowCount Amount of lines to calculate
  */
-void drawRows(uint16_t *dest, int y, int rowCount);
+void drawRows(uint16_t* dest, int y, int rowCount);
 
 void handleUserInput();
 

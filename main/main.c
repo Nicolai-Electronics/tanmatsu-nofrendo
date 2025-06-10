@@ -26,28 +26,24 @@ static lcd_color_rgb_pixel_format_t display_color_format;
 static QueueHandle_t                input_event_queue = NULL;
 
 #define ASSERT_ESP_OK(returnCode, message)                          \
-    if (returnCode != ESP_OK)                                       \
-    {                                                               \
+    if (returnCode != ESP_OK) {                                     \
         printf("%s. (%s)\n", message, esp_err_to_name(returnCode)); \
         return returnCode;                                          \
     }
 
 int selectedRomIdx;
 
-void esp_wake_deep_sleep()
-{
+void esp_wake_deep_sleep() {
     esp_restart();
 }
 
-int app_main(void)
-{
+int app_main(void) {
     // Start the GPIO interrupt service
     gpio_install_isr_service(0);
 
     // Initialize the Non Volatile Storage service
     esp_err_t res = nvs_flash_init();
-    if (res == ESP_ERR_NVS_NO_FREE_PAGES || res == ESP_ERR_NVS_NEW_VERSION_FOUND)
-    {
+    if (res == ESP_ERR_NVS_NO_FREE_PAGES || res == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         res = nvs_flash_init();
     }
@@ -75,8 +71,7 @@ int app_main(void)
 
 #ifndef SKIP_MENU
     selectedRomFilename = runMenu();
-    if (selectedRomFilename == NULL)
-    {
+    if (selectedRomFilename == NULL) {
         ESP_LOGE(TAG, "No ROM selected. Exiting...\n");
         while (true)
             ;
