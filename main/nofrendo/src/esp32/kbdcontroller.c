@@ -168,7 +168,7 @@ int incVolume() {
 
 int decVolume() {
     if (volume > 0)
-        volume--;
+        volume -= 5;
     return volume;
 }
 
