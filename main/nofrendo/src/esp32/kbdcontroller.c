@@ -41,6 +41,10 @@ static int  bright = 13;
 // static bool shutdown;
 static bool showMenu;
 
+void setShowMenu(bool val) {
+    showMenu = val;
+}
+
 bool getShowMenu() {
     return showMenu;
 }

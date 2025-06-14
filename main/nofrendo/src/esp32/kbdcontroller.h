@@ -4,6 +4,7 @@
 int  kbdReadInput();
 void kbdControllerInit();
 bool getShowMenu();
+void setShowMenu(bool val);
 int  incVolume();
 int  decVolume();
 int  getBright();

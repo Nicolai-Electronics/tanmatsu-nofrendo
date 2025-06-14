@@ -125,8 +125,7 @@ static uint8_t read_protect(uint32_t address) {
 
 #define LAST_MEMORY_HANDLER \
     {                       \
-        -1, -1, NULL        \
-    }
+        -1, -1, NULL}
 /* read/write handlers for standard NES */
 static nes6502_memread default_readhandler[] =
     {
@@ -531,6 +530,9 @@ nes_t* nes_create(void) {
     nes_t*    machine;
     sndinfo_t osd_sound;
     int       i;
+
+    // Make sure the OSD menu is disabled
+    setShowMenu(false);
 
     machine = malloc(sizeof(nes_t));
     if (NULL == machine)
