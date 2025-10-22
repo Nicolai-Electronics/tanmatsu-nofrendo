@@ -1,42 +1,35 @@
-#include "bsp/device.h"
-#include "bsp/display.h"
-#include "bsp/input.h"
-#include "display.h"
-// #include "driver/gpio.h"
-#include "esp_err.h"
-#include "esp_lcd_types.h"
-#include "esp_log.h"
-#include "hal/lcd_types.h"
-#include "led.h"
-#include "menu/src/menu.h"
-#include "nvs_flash.h"
-#include "sdcard.h"
 #include <nofrendo.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include "bsp/device.h"
+#include "bsp/display.h"
+#include "bsp/input.h"
+#include "chakrapetchmedium.h"
+#include "display.h"
+#include "esp_err.h"
+#include "esp_lcd_types.h"
+#include "esp_log.h"
+#include "esp_vfs_fat.h"
+#include "freertos/idf_additions.h"
+#include "freertos/projdefs.h"
+#include "hal/lcd_types.h"
+#include "icons.h"
+#include "led.h"
+#include "menu/src/menu.h"
+#include "menu_filebrowser.h"
+#include "message_dialog.h"
+#include "nvs_flash.h"
+#include "pax_codecs.h"
+#include "pax_fonts.h"
+#include "pax_gfx.h"
+#include "pax_text.h"
+#include "sdcard.h"
+#include "shapes/pax_misc.h"
 
-// Constants
 static char* const TAG = "main";
 
-// Global variables
-static esp_lcd_panel_handle_t       display_lcd_panel = NULL;
-static size_t                       display_h_res     = 0;
-static size_t                       display_v_res     = 0;
-static lcd_color_rgb_pixel_format_t display_color_format;
-static lcd_rgb_data_endian_t        display_data_endian;
-static QueueHandle_t                input_event_queue = NULL;
-
-#define ASSERT_ESP_OK(returnCode, message)                          \
-    if (returnCode != ESP_OK) {                                     \
-        printf("%s. (%s)\n", message, esp_err_to_name(returnCode)); \
-        return returnCode;                                          \
-    }
-
-int selectedRomIdx;
-
-void esp_wake_deep_sleep() {
-    esp_restart();
-}
+static QueueHandle_t input_event_queue = NULL;
+static wl_handle_t   wl_handle         = WL_INVALID_HANDLE;
 
 int app_main(void) {
     // Start the GPIO interrupt service
@@ -54,33 +47,75 @@ int app_main(void) {
     ESP_ERROR_CHECK(bsp_device_initialize());
     ESP_ERROR_CHECK(led_init());
 
-    // Fetch the handle for using the screen, this works even when
-    res = bsp_display_get_panel(&display_lcd_panel);
-    ESP_ERROR_CHECK(res); // Check that the display handle has been initialized
-    // bsp_display_get_panel_io(&display_lcd_panel_io); // Do not check result of panel IO handle: not all types of
-    //                                                  // display expose a panel IO handle
-    res = bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format, &display_data_endian);
-    ESP_ERROR_CHECK(res); // Check that the display parameters have been initialized
+    // Initialize the display
+    ESP_ERROR_CHECK(display_init());
 
+    // Fetch the input event queue
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
-    // Register SD card
-    ASSERT_ESP_OK(registerSdCard(), "Unable to register SD Card");
+    // Initialize icons
+    load_icons();
 
-    // init PPA display buffer
-    init_display();
+    // Display welcome message
+    pax_buf_t* pax_buf = display_get_pax_buffer();
+    pax_background(pax_buf, 0xFF000000);  // Black background
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "Tanmatsu NoFrendo NES Emulator");
 
-#ifndef SKIP_MENU
-    selectedRomFilename = runMenu();
-    if (selectedRomFilename == NULL) {
-        ESP_LOGE(TAG, "No ROM selected. Exiting...\n");
-        while (true)
-            ;
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 2, "[START] orange triangle");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 3, "[MENU ] purple diamond");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 4, "[A    ] left shift");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 5, "[B    ] z");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 6, "[D-PAD] up/down/left/right arrows");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 7, "        / = left and up arrows");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 8, "        right shift = right and up arrows");
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 10,
+                  "[ESC  ] switch between SD card and internal storage");
+    display_blit();
+
+    vTaskDelay(pdMS_TO_TICKS(2000));
+
+    // Mount the internal FAT filesystem
+    esp_vfs_fat_mount_config_t fat_mount_config = {
+        .format_if_mount_failed   = false,
+        .max_files                = 10,
+        .allocation_unit_size     = CONFIG_WL_SECTOR_SIZE,
+        .disk_status_check_enable = false,
+        .use_one_fat              = false,
+    };
+
+    res = esp_vfs_fat_spiflash_mount_rw_wl("/int", "locfd", &fat_mount_config, &wl_handle);
+    if (res != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FAT filesystem: %s", esp_err_to_name(res));
+        message_dialog(NULL, "Error", "Failed to mount FAT filesystem", "OK");
     }
-#endif
 
-    ESP_LOGI(TAG, "NoFrendo start!\n");
+    // Register SD card
+    res = registerSdCard();
+    if (res != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize SD card: %s", esp_err_to_name(res));
+        message_dialog(NULL, "Error", "Failed to mount SD card", "OK");
+    }
+
+    while (true) {
+        if (menu_filebrowser("/int", (const char*[]){"nes"}, 1, selectedRomFilename, 256,
+                             "Select NES ROM [internal]")) {
+            break;
+        }
+        if (menu_filebrowser("/sd", (const char*[]){"nes"}, 1, selectedRomFilename, 256, "Select NES ROM [SD card]")) {
+            break;
+        }
+    }
+
+    ESP_LOGI(TAG, "Starting NoFrendo");
+    pax_background(pax_buf, 0xFF000000);  // Black background
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "Starting NoFrendo...");
+    display_blit();
+
     nofrendo_main(0, NULL);
-    ESP_LOGE(TAG, "NoFrendo died? WtF?\n");
+
+    ESP_LOGE(TAG, "NoFrendo exited");
+    pax_background(pax_buf, 0xFF000000);  // Black background
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "NoFrendo exited");
+    display_blit();
     return 0;
 }

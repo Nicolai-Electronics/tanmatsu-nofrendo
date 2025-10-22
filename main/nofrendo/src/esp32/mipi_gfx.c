@@ -12,7 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <display.h>
+#include <esp_log.h>
+#include <mipi_gfx.h>
+#include <nes.h>
+#include <pretty_effect.h>
+#include <stdio.h>
+#include <string.h>
 #include "bsp/display.h"
+#include "common/display.h"
 #include "driver/ppa.h"
 #include "esp_err.h"
 #include "esp_heap_caps.h"
@@ -23,13 +31,6 @@
 #include "hal/ppa_types.h"
 #include "kbdcontroller.h"
 #include "soc/spi_reg.h"
-#include <display.h>
-#include <esp_log.h>
-#include <mipi_gfx.h>
-#include <nes.h>
-#include <pretty_effect.h>
-#include <stdio.h>
-#include <string.h>
 
 static const char* const TAG = "mipi_gfx";
 
@@ -72,13 +73,8 @@ uint16_t scaleY[240];
 
 static int lastShowMenu = 0;
 
-void mipi_blit(const uint16_t* data,
-               const int       pic_w,
-               const int       pic_h,
-               const int       xs,
-               const int       ys,
-               const int       width,
-               const int       height) {
+void mipi_blit(const uint16_t* data, const int pic_w, const int pic_h, const int xs, const int ys, const int width,
+               const int height) {
     // Black background
     // backgroundColor                  = 0;
     active_config.in.buffer          = data;
@@ -108,23 +104,18 @@ void mipi_blit(const uint16_t* data,
  *
  * @warning This function is not thread-safe and should not be called from multiple threads simultaneously.
  *
- * @warning This function does not handle interlacing or other advanced display features. It simply writes the given frame data directly to the display.
+ * @warning This function does not handle interlacing or other advanced display features. It simply writes the given
+ * frame data directly to the display.
  */
-void mipi_write_frame(const uint16_t xs,
-                      const uint16_t ys,
-                      const uint16_t width,
-                      const uint16_t height,
-                      const uint8_t  data[],
-                      bool           xStr,
-                      bool           yStr) {
+void mipi_write_frame(const uint16_t xs, const uint16_t ys, const uint16_t width, const uint16_t height,
+                      const uint8_t data[], bool xStr, bool yStr) {
     // int      x, y;
     // int      xx, yy;
     // int      i;
     // uint16_t x1, y1, evenPixel, oddPixel, backgroundColor;
     // uint32_t xv, yv, dc;
     // uint32_t temp[16];
-    if (data == NULL)
-        return;
+    if (data == NULL) return;
 
     // TODO: Add show menu back in, in the future
     //
@@ -147,14 +138,7 @@ void mipi_write_frame(const uint16_t xs,
     // ys is fixed for emulator output
     const uint16_t my_ys = (800 - (NES_VISIBLE_WIDTH * 2 * 1.333)) / 2;
 
-    mipi_blit(
-        prescale_fb,
-        NES_SCREEN_WIDTH,
-        NES_SCREEN_HEIGHT,
-        xs,
-        my_ys,
-        width,
-        height);
+    mipi_blit(prescale_fb, NES_SCREEN_WIDTH, NES_SCREEN_HEIGHT, xs, my_ys, width, height);
 }
 
 static esp_err_t mipi_init_ppa(const size_t bf_h, const size_t bf_v) {
@@ -167,7 +151,7 @@ static esp_err_t mipi_init_ppa(const size_t bf_h, const size_t bf_v) {
     // Setup frame to bitmap PPA config, which blits the frame to the MIPI buffer.
     esp_err_t res;
 
-    size_t buffer_size = bf_h * bf_v * sizeof(uint16_t); // 16-bit per pixel
+    size_t buffer_size = bf_h * bf_v * sizeof(uint16_t);  // 16-bit per pixel
 
     ESP_LOGI(TAG, "Initializing PPA srm, display buffer w %d, h %d, buffer size %zu", bf_h, bf_v, buffer_size);
 
@@ -230,15 +214,15 @@ void mipi_init() {
     bsp_display_get_panel_io(&display_lcd_panel_io);
 
     res = bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format, &display_data_endian);
-    ESP_ERROR_CHECK(res); // Check that the display parameters have been initialized
+    ESP_ERROR_CHECK(res);  // Check that the display parameters have been initialized
 
     size_t buffer_size = display_h_res * display_v_res * sizeof(uint16_t);
 
     prescale_fb = (uint16_t*)heap_caps_malloc(320 * 240 * sizeof(uint16_t), MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
-    mipi_fb     = get_mipi_framebuffer();
+    mipi_fb     = (uint16_t*)display_get_raw_buffer();
 
     for (int i = 0; i < buffer_size / sizeof(uint16_t); i++) {
-        mipi_fb[i] = 0x0000; // Black color
+        mipi_fb[i] = 0x0000;  // Black color
     }
 
     // Register the PPA client

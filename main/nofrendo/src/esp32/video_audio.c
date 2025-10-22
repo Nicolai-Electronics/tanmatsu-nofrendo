@@ -154,56 +154,21 @@ static int osd_init_sound(void) {
 #if CONFIG_SOUND_ENABLED
     ESP_LOGI(TAG, "Initializing BSP audio interface");
     bsp_audio_set_volume(0);
-    esp_err_t res = bsp_audio_initialize();
-    if (res != ESP_OK) {
-        ESP_LOGE(TAG, "Initializing audio failed");
-        return res;
-    }
-
     ESP_LOGI(TAG, "Enable aplifier for audio output");
     bsp_audio_set_volume(getVolume());
     bsp_audio_set_amplifier(true);
 
     ESP_LOGI(TAG, "Initializing I2S audio interface");
     // I2S audio
-    i2s_chan_config_t chan_cfg = (i2s_chan_config_t)I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
-
-    res = i2s_new_channel(&chan_cfg, &i2s_handle, NULL);
+    esp_err_t res = bsp_audio_get_i2s_handle(&i2s_handle);
     if (res != ESP_OK) {
-        ESP_LOGE(TAG, "Initializing I2S channel failed");
+        ESP_LOGE(TAG, "Failed to get I2S handle");
         return res;
     }
 
-    i2s_std_config_t i2s_config = {
-        .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG((uint32_t)AUDIO_SAMPLERATE),
-        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
-        .gpio_cfg =
-            {
-                .mclk = GPIO_NUM_30,
-                .bclk = GPIO_NUM_29,
-                .ws   = GPIO_NUM_31,
-                .dout = GPIO_NUM_28,
-                .din  = I2S_GPIO_UNUSED,
-                .invert_flags =
-                    {
-                        .mclk_inv = false,
-                        .bclk_inv = false,
-                        .ws_inv   = false,
-                    },
-            },
-    };
-
-    res = i2s_channel_init_std_mode(i2s_handle, &i2s_config);
-    if (res != ESP_OK) {
-        ESP_LOGE(TAG, "Configuring I2S channel failed");
-        return res;
-    }
-
-    res = i2s_channel_enable(i2s_handle);
-    if (res != ESP_OK) {
-        ESP_LOGE(TAG, "Enabling I2S channel failed");
-        return res;
-    }
+    i2s_channel_disable(i2s_handle);
+    bsp_audio_set_rate(AUDIO_SAMPLERATE);
+    i2s_channel_enable(i2s_handle);
 
     audio_buffer       = malloc(BYTES_PER_SAMPLE * 2 * AUDIO_BUFFER_LENGTH);
     samplesPerPlayback = AUDIO_SAMPLERATE / NES_REFRESH_RATE;
@@ -255,10 +220,12 @@ bitmap_t* myBitmap;
 
 void osd_getvideoinfo(vidinfo_t* info) {
     lcd_color_rgb_pixel_format_t color_fmt;
+    lcd_rgb_data_endian_t        display_data_endian;
     esp_err_t                    res = bsp_display_get_parameters(
         &info->default_width,
         &info->default_height,
-        &color_fmt);
+        &color_fmt,
+        &display_data_endian);
     if (res != ESP_OK) {
         printf("Failed to get display parameters: %d\n", res);
         exit(1);

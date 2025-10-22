@@ -1,5 +1,5 @@
-BasedOnStyle: LLVM
-CommentPragmas: '(@copydoc)'
+BasedOnStyle: Google
+CommentPragmas: "(@copydoc)"
 
 # Pointers
 DerivePointerAlignment: false
@@ -11,12 +11,6 @@ TabWidth: 4
 UseTab: "Never"
 NamespaceIndentation: All
 IndentGotoLabels: true
-
-# BreakBeforeBraces: Allman
-AlignAfterOpenBracket: Align
-AllowShortBlocksOnASingleLine: false
-AllowShortIfStatementsOnASingleLine: false
-ColumnLimit: 0
 
 # Alignments
 AlignConsecutiveAssignments:
@@ -45,19 +39,18 @@ AlwaysBreakTemplateDeclarations: No
 AllowShortFunctionsOnASingleLine: None
 AllowShortEnumsOnASingleLine: false
 KeepEmptyLinesAtTheStartOfBlocks: true
-# BreakBeforeBraces: Custom
+BreakBeforeBraces: Custom
 BraceWrapping:
-#   AfterClass: false
-  AfterCaseLabel: false
+  AfterClass: false
   AfterControlStatement: false
   AfterEnum: false
   AfterFunction: false
-#   AfterNamespace: false
+  AfterNamespace: false
   AfterStruct: false
   AfterUnion: false
-#   BeforeCatch: false
+  BeforeCatch: false
   BeforeElse: false
-# ColumnLimit: 120
+ColumnLimit: 120
 
 # Includes
 IncludeBlocks: Merge

@@ -4,7 +4,12 @@ idf_component_register(
 		"main.c"
         "sdcard.c"
 		"led.c"
-        "display.c"
+        "common/display.c"
+        "common/theme.c"
+        "menu_filebrowser.c"
+        "message_dialog.c"
+        "icons.c"
+        "common/chakrapetchmedium.c"
 
         "menu/src/charData.c"
         "menu/src/charPixels.c"
@@ -98,6 +103,9 @@ idf_component_register(
 		nvs_flash
         esp_driver_ppa
         esp_partition
+        pax-gfx
+        pax-codecs
+        gui
 	INCLUDE_DIRS
 		"."
 		"menu/src"
@@ -107,4 +115,5 @@ idf_component_register(
 		"nofrendo/src/libsnss"
 		"nofrendo/src/esp32"
 		"nofrendo/src/cpu"
+		"common"
 )

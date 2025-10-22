@@ -1,5 +1,7 @@
 
 #include "sdcard.h"
+#include <string.h>
+#include <sys/stat.h>
 #include "driver/sdmmc_host.h"
 #include "esp_err.h"
 #include "esp_log.h"
@@ -8,18 +10,12 @@
 #include "sd_pwr_ctrl_by_on_chip_ldo.h"
 #include "sdmmc_cmd.h"
 #include "targets/tanmatsu/tanmatsu_hardware.h"
-#include <string.h>
-#include <sys/stat.h>
 
 static const char* TAG = "sd_card_setup";
 
 #define READ_BUFFER_SIZE 64
 
-#ifdef SKIP_MENU
-char* selectedRomFilename = SD_CARD_ROM_PATH "/super-mario-bros-3.nes";
-#else
-char* selectedRomFilename;
-#endif
+char selectedRomFilename[256] = {0};
 
 sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
 sdmmc_host_t        host        = SDMMC_HOST_DEFAULT();
@@ -30,7 +26,7 @@ esp_err_t registerSdCard() {
     esp_err_t ret;
 
     sd_pwr_ctrl_ldo_config_t ldo_config = {
-        .ldo_chan_id = LDO_UNIT_4, // SDCard powered by VO4
+        .ldo_chan_id = LDO_UNIT_4,  // SDCard powered by VO4
     };
     sd_pwr_ctrl_handle_t pwr_ctrl_handle = NULL;
 
@@ -65,11 +61,7 @@ esp_err_t registerSdCard() {
 
     static const char mount_point[] = SD_CARD_MOUNT_POINT;
 
-    ret = esp_vfs_fat_sdmmc_mount(mount_point,
-                                  &host,
-                                  &slot_config,
-                                  &mount_config,
-                                  &mount_card);
+    ret = esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &mount_card);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Failed to mount SD card: %s", esp_err_to_name(ret));
         return false;
@@ -78,24 +70,7 @@ esp_err_t registerSdCard() {
     // Get some info about the card
     sdmmc_card_print_info(stdout, mount_card);
 
-    ESP_LOGI(TAG, "SDcard initialized");
-
-    // Make sure the C64PRG directory exists if it doesn't already exist
-    ESP_LOGI(TAG, "Checking if PRG directory exists");
-    struct stat st;
-    if (stat(SD_CARD_ROM_PATH, &st) != 0) {
-        // directory does not exist, create it
-        if (mkdir(SD_CARD_ROM_PATH, 0775) != 0) {
-            ESP_LOGE(TAG, "Failed to create directory %s", SD_CARD_ROM_PATH);
-            return false;
-        }
-        ESP_LOGE(TAG, "PRG directory has been created: %s", SD_CARD_ROM_PATH);
-    } else if (!S_ISDIR(st.st_mode)) {
-        ESP_LOGE(TAG, "%s is not a directory", SD_CARD_ROM_PATH);
-        return false;
-    } else {
-        ESP_LOGI(TAG, "Found NES ROM directory: %s", SD_CARD_ROM_PATH);
-    }
+    ESP_LOGI(TAG, "SD card initialized");
 
     return ESP_OK;
 }
