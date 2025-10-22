@@ -49,6 +49,7 @@ bool                         mipi_initialized     = false;
 size_t                       display_h_res        = 0;
 size_t                       display_v_res        = 0;
 lcd_color_rgb_pixel_format_t display_color_format = LCD_COLOR_FMT_RGB565;
+lcd_rgb_data_endian_t        display_data_endian  = LCD_RGB_DATA_ENDIAN_BIG;
 
 // Input event queue
 
@@ -228,7 +229,7 @@ void mipi_init() {
     // Not implemented yet in BSP
     bsp_display_get_panel_io(&display_lcd_panel_io);
 
-    res = bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format);
+    res = bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format, &display_data_endian);
     ESP_ERROR_CHECK(res); // Check that the display parameters have been initialized
 
     size_t buffer_size = display_h_res * display_v_res * sizeof(uint16_t);

@@ -10,12 +10,6 @@
 static const char* TAG = "led_controller";
 
 esp_err_t led_init(void) {
-    esp_err_t ret;
-    ret = bsp_led_initialize();
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize LEDs: %s", esp_err_to_name(ret));
-        return ret;
-    }
     // Clear the all LEDs
     led_clear_all();
     return ESP_OK;
