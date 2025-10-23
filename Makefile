@@ -110,6 +110,7 @@ flashmonitor: build
 	idf.py -B $(BUILD) flash -p $(PORT) monitor
 
 # Badgelink
+
 .PHONY: badgelink
 badgelink:
 	rm -rf badgelink
@@ -123,3 +124,9 @@ install:
 .PHONY: run
 run:
 	cd badgelink/tools; ./badgelink.sh start team.badge.nofrendo
+
+# Formatting
+
+.PHONY: format
+format:
+	find main/ -iname '*.h' -o -iname '*.c' -o -iname '*.cpp' | xargs clang-format -i
