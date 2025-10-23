@@ -53,8 +53,23 @@ int app_main(void) {
     // Fetch the input event queue
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
+    // Mount the internal FAT filesystem
+    esp_vfs_fat_mount_config_t fat_mount_config = {
+        .format_if_mount_failed   = false,
+        .max_files                = 10,
+        .allocation_unit_size     = CONFIG_WL_SECTOR_SIZE,
+        .disk_status_check_enable = false,
+        .use_one_fat              = false,
+    };
+
+    res = esp_vfs_fat_spiflash_mount_rw_wl("/int", "locfd", &fat_mount_config, &wl_handle);
+    if (res != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FAT filesystem: %s", esp_err_to_name(res));
+        message_dialog(NULL, "Error", "Failed to mount FAT filesystem", "OK");
+    }
+
     // Initialize icons
-    // load_icons();
+    load_icons();
 
     // Display welcome message
     pax_buf_t* pax_buf = display_get_pax_buffer();
@@ -73,21 +88,6 @@ int app_main(void) {
     display_blit();
 
     vTaskDelay(pdMS_TO_TICKS(2000));
-
-    // Mount the internal FAT filesystem
-    esp_vfs_fat_mount_config_t fat_mount_config = {
-        .format_if_mount_failed   = false,
-        .max_files                = 10,
-        .allocation_unit_size     = CONFIG_WL_SECTOR_SIZE,
-        .disk_status_check_enable = false,
-        .use_one_fat              = false,
-    };
-
-    res = esp_vfs_fat_spiflash_mount_rw_wl("/int", "locfd", &fat_mount_config, &wl_handle);
-    if (res != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to mount FAT filesystem: %s", esp_err_to_name(res));
-        message_dialog(NULL, "Error", "Failed to mount FAT filesystem", "OK");
-    }
 
     // Register SD card
     res = registerSdCard();

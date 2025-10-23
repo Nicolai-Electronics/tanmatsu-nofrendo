@@ -99,6 +99,11 @@ flash: build
 	source "$(IDF_PATH)/export.sh" && \
 	idf.py -B $(BUILD) flash -p $(PORT)
 
+.PHONY: monitor
+monitor: build
+	source "$(IDF_PATH)/export.sh" && \
+	idf.py -B $(BUILD) monitor -p $(PORT)
+
 .PHONY: flashmonitor
 flashmonitor: build
 	source "$(IDF_PATH)/export.sh" && \
