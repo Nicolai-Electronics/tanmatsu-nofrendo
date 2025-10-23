@@ -54,7 +54,7 @@ int app_main(void) {
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
     // Initialize icons
-    load_icons();
+    // load_icons();
 
     // Display welcome message
     pax_buf_t* pax_buf = display_get_pax_buffer();
