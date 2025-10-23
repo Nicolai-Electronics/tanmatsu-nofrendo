@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -23,8 +23,8 @@
 ** $Id: memguard.h,v 1.1.1.1 2001/04/27 07:03:54 neil Exp $
 */
 
-#ifndef  _MEMGUARD_H_
-#define  _MEMGUARD_H_
+#ifndef _MEMGUARD_H_
+#define _MEMGUARD_H_
 
 // #ifdef strdup
 // #undef strdup
@@ -33,13 +33,13 @@
 #include <stdbool.h>
 #ifdef NOFRENDO_DEBUG
 
-#define  malloc(s)   _my_malloc((s), __FILE__, __LINE__)
-#define  free(d)     _my_free((void **) &(d), __FILE__, __LINE__)
-#define  strdup(s)   _my_strdup((s), __FILE__, __LINE__)
+#define malloc(s) _my_malloc((s), __FILE__, __LINE__)
+#define free(d)   _my_free((void**)&(d), __FILE__, __LINE__)
+#define strdup(s) _my_strdup((s), __FILE__, __LINE__)
 
-extern void *_my_malloc(int size, char *file, int line);
-extern void _my_free(void **data, char *file, int line);
-extern char *_my_strdup(const char *string, char *file, int line);
+extern void* _my_malloc(int size, char* file, int line);
+extern void  _my_free(void** data, char* file, int line);
+extern char* _my_strdup(const char* string, char* file, int line);
 
 #else /* !NORFRENDO_DEBUG */
 
@@ -48,12 +48,11 @@ extern char *_my_strdup(const char *string, char *file, int line);
 // #define  free(d)     _my_free((void **) &(d))
 // #define  strdup(s)   _my_strdup((s))
 
-extern void *_my_malloc(int size);
-extern void _my_free(void **data);
-extern char *_my_strdup(const char *string);
+extern void* _my_malloc(int size);
+extern void  _my_free(void** data);
+extern char* _my_strdup(const char* string);
 
 #endif /* !NOFRENDO_DEBUG */
-
 
 extern void mem_cleanup(void);
 extern void mem_checkblocks(void);
@@ -61,7 +60,7 @@ extern void mem_checkleaks(void);
 
 extern bool mem_debug;
 
-#endif   /* _MEMGUARD_H_ */
+#endif /* _MEMGUARD_H_ */
 
 /*
 ** $Log: memguard.h,v $

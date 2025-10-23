@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -27,33 +27,32 @@
 #define _PCX_H_
 
 #include <stdint.h>
-#include "osd.h"
 #include "bitmap.h"
+#include "osd.h"
 
 /* Got these out of ZSoft's document */
-typedef struct pcxheader_s
-{
-   uint8_t  Manufacturer     __PACKED__;
-   uint8_t  Version          __PACKED__;
-   uint8_t  Encoding         __PACKED__;
-   uint8_t  BitsPerPixel     __PACKED__;
-   uint16_t Xmin             __PACKED__;
-   uint16_t Ymin             __PACKED__;
-   uint16_t Xmax             __PACKED__;
-   uint16_t Ymax             __PACKED__;
-   uint16_t HDpi             __PACKED__;
-   uint16_t VDpi             __PACKED__;
-   uint8_t  Colormap[48]     __PACKED__;
-   uint8_t  Reserved         __PACKED__;
-   uint8_t  NPlanes          __PACKED__;
-   uint16_t BytesPerLine     __PACKED__;
-   uint16_t PaletteInfo      __PACKED__;
-   uint16_t HscreenSize      __PACKED__;
-   uint16_t VscreenSize      __PACKED__;
-   uint8_t  Filler[54]       __PACKED__;
+typedef struct pcxheader_s {
+    uint8_t Manufacturer  __PACKED__;
+    uint8_t Version       __PACKED__;
+    uint8_t Encoding      __PACKED__;
+    uint8_t BitsPerPixel  __PACKED__;
+    uint16_t Xmin         __PACKED__;
+    uint16_t Ymin         __PACKED__;
+    uint16_t Xmax         __PACKED__;
+    uint16_t Ymax         __PACKED__;
+    uint16_t HDpi         __PACKED__;
+    uint16_t VDpi         __PACKED__;
+    uint8_t               Colormap[48] __PACKED__;
+    uint8_t Reserved      __PACKED__;
+    uint8_t NPlanes       __PACKED__;
+    uint16_t BytesPerLine __PACKED__;
+    uint16_t PaletteInfo  __PACKED__;
+    uint16_t HscreenSize  __PACKED__;
+    uint16_t VscreenSize  __PACKED__;
+    uint8_t               Filler[54] __PACKED__;
 } pcxheader_t;
 
-extern int pcx_write(char *filename, bitmap_t *bmp, rgb_t *pal);
+extern int pcx_write(char* filename, bitmap_t* bmp, rgb_t* pal);
 
 #endif /* _PCX_H_ */
 

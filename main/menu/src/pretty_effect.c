@@ -16,9 +16,9 @@
 // #include "driver/gpio.h"
 #include <charPixels.h>
 // #include "esp_deep_sleep.h"
-#include "esp_log.h"
 #include <kbdcontroller.h>
 #include <menu.h>
+#include "esp_log.h"
 
 static const char* const TAG = "pretty_effect";
 
@@ -103,7 +103,7 @@ inline int rgbColor(const uint8_t red, const uint8_t green, const uint8_t blue) 
  * @return A pseudo-random 32-bit unsigned integer.
  */
 static inline uint32_t xorshift32() {
-    static uint32_t state = 12345; // Seed value (can be any non-zero value)
+    static uint32_t state = 12345;  // Seed value (can be any non-zero value)
 
     state ^= state << 13;
     state ^= state >> 17;
@@ -166,8 +166,7 @@ static inline uint16_t get_bgnd_pixel(int x, int y, int bottomLogoOffset, int bo
 #define DEFAULT_MENU_DELAY 1000
 // Deal with user activity during boot screen and menu
 void handleUserInput() {
-    if (inputDelay > 0)
-        inputDelay -= 1;
+    if (inputDelay > 0) inputDelay -= 1;
     int input = kbdReadInput();
     if (splashScreenTimer > 0) {
         if (isAnyPressed(input)) {
@@ -185,8 +184,7 @@ void handleUserInput() {
             selectedIdx++;
             inputDelay = DEFAULT_MENU_DELAY;
         }
-        if (isAPressed(input) || isBPressed(input) || isStartPressed(input))
-            selRom = selectedIdx;
+        if (isAPressed(input) || isBPressed(input) || isStartPressed(input)) selRom = selectedIdx;
         // Real emulators do not need sleep!
         // if (isSelectPressed(input))
         // {
@@ -216,8 +214,7 @@ void drawRows(uint16_t* dest, int y, int rowCount) {
     if (y == 0) {
         // Change color cycle value every frame, implemented further downstream in the iconData
         colorCycle = (colorCycle + 1) % 30;
-        if (initialStaticFrames > 0)
-            initialStaticFrames--;
+        if (initialStaticFrames > 0) initialStaticFrames--;
         if (bottomLogoOffset > 0 && initialStaticFrames <= 0) {
             bottomLogoOffset -= logoMoveSpeed;
             if (bottomLogoOffset < 0) {
@@ -225,18 +222,13 @@ void drawRows(uint16_t* dest, int y, int rowCount) {
             }
         }
         // Count down splash screen frames to auto-exit the splash screen
-        if (bottomLogoOffset == 0 && splashScreenTimer > 0)
-            splashScreenTimer--;
+        if (bottomLogoOffset == 0 && splashScreenTimer > 0) splashScreenTimer--;
     }
 
     // for (int yy = y; yy < y + rowCount; yy++)
     // {
     for (int x = 0; x < 320; x++) {
-        *dest++ = get_bgnd_pixel(x,
-                                 y,
-                                 bottomLogoOffset,
-                                 initialStaticFrames,
-                                 selectedIdx);
+        *dest++ = get_bgnd_pixel(x, y, bottomLogoOffset, initialStaticFrames, selectedIdx);
     }
     // }
 }

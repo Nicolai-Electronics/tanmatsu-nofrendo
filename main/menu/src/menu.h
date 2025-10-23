@@ -16,8 +16,7 @@ char* runMenu();
 void  setBr(int bright);
 void  freeMenuResources();
 
-typedef struct menuEntry
-{
+typedef struct menuEntry {
     int  entryNumber;
     char icon;
     char name[FILENAME_LENGTH + 1];

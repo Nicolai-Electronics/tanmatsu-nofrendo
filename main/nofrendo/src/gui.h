@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -28,48 +28,46 @@
 
 /* GUI colors - the last 64 of a 256-color palette */
 
-#define  GUI_FIRSTENTRY 192
+#define GUI_FIRSTENTRY 192
 
-enum
-{
-   GUI_BLACK = GUI_FIRSTENTRY,
-   GUI_DKGRAY,
-   GUI_GRAY,
-   GUI_LTGRAY,
-   GUI_WHITE,
-   GUI_RED,
-   GUI_GREEN,
-   GUI_BLUE,
-   GUI_YELLOW,
-   GUI_ORANGE,
-   GUI_PURPLE,
-   GUI_TEAL,
-   GUI_DKGREEN,
-   GUI_DKBLUE,
-   GUI_LASTENTRY
+enum {
+    GUI_BLACK = GUI_FIRSTENTRY,
+    GUI_DKGRAY,
+    GUI_GRAY,
+    GUI_LTGRAY,
+    GUI_WHITE,
+    GUI_RED,
+    GUI_GREEN,
+    GUI_BLUE,
+    GUI_YELLOW,
+    GUI_ORANGE,
+    GUI_PURPLE,
+    GUI_TEAL,
+    GUI_DKGREEN,
+    GUI_DKBLUE,
+    GUI_LASTENTRY
 };
 
-#define  GUI_TOTALCOLORS   (GUI_LASTENTRY - GUI_FIRSTENTRY)
+#define GUI_TOTALCOLORS (GUI_LASTENTRY - GUI_FIRSTENTRY)
 
 /* TODO: bleh */
 #include "bitmap.h"
 extern rgb_t gui_pal[GUI_TOTALCOLORS];
 
-#define  MAX_MSG_LENGTH 256
+#define MAX_MSG_LENGTH 256
 
-typedef struct message_s
-{
-   int ttl;
-   char text[MAX_MSG_LENGTH];
-   uint8_t color;
+typedef struct message_s {
+    int     ttl;
+    char    text[MAX_MSG_LENGTH];
+    uint8_t color;
 } message_t;
 
 extern void gui_tick(int ticks);
 extern void gui_setrefresh(int frequency);
 
-extern void gui_sendmsg(int color, char *format, ...);
+extern void gui_sendmsg(int color, char* format, ...);
 
-extern int gui_init(void);
+extern int  gui_init(void);
 extern void gui_shutdown(void);
 
 extern void gui_frame(bool draw);
@@ -89,7 +87,6 @@ extern void gui_togglefs(void);
 extern void gui_displayinfo();
 extern void gui_toggle_chan(int chan);
 extern void gui_setfilter(int filter_type);
-
 
 #endif /* _GUI_H_ */
 

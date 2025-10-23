@@ -31,20 +31,17 @@
 
 #define MMC_LASTBANK -1
 
-typedef struct
-{
+typedef struct {
     uint32_t min_range, max_range;
     uint8_t (*read_func)(uint32_t address);
 } map_memread;
 
-typedef struct
-{
+typedef struct {
     uint32_t min_range, max_range;
     void (*write_func)(uint32_t address, uint8_t value);
 } map_memwrite;
 
-typedef struct mapintf_s
-{
+typedef struct mapintf_s {
     int   number;
     char* name;
     void (*init)(void);
@@ -58,8 +55,7 @@ typedef struct mapintf_s
 } mapintf_t;
 
 #include "nes_rom.h"
-typedef struct mmc_s
-{
+typedef struct mmc_s {
     mapintf_t* intf;
     rominfo_t* cart; /* link it back to the cart */
 } mmc_t;

@@ -23,30 +23,27 @@
 ** $Id: bitmap.c,v 1.2 2001/04/27 14:37:11 neil Exp $
 */
 
-#include "esp_heap_caps.h"
 #include <bitmap.h>
 #include <noftypes.h>
 #include <stdio.h>
 #include <string.h>
+#include "esp_heap_caps.h"
 
 void bmp_clear(const bitmap_t* bitmap, uint8_t color) {
     memset(bitmap->data, color, bitmap->pitch * bitmap->height);
 }
 
-static bitmap_t* _make_bitmap(uint8_t* data_addr, bool hw, int width,
-                              int height, int pitch, int overdraw) {
+static bitmap_t* _make_bitmap(uint8_t* data_addr, bool hw, int width, int height, int pitch, int overdraw) {
     bitmap_t* bitmap;
     int       i;
 
     /* quick safety check */
-    if (NULL == data_addr)
-        return NULL;
+    if (NULL == data_addr) return NULL;
 
     /* Make sure to add in space for line pointers */
     // Pretty dirty hack to allocate the bitmap + line pointers in one go
     bitmap = malloc(sizeof(bitmap_t) + (sizeof(uint8_t*) * height));
-    if (NULL == bitmap)
-        return NULL;
+    if (NULL == bitmap) return NULL;
 
     bitmap->hardware = hw;
     bitmap->height   = height;
@@ -57,8 +54,7 @@ static bitmap_t* _make_bitmap(uint8_t* data_addr, bool hw, int width,
     /* Set up line pointers */
     bitmap->line[0] = bitmap->data + overdraw;
 
-    for (i = 1; i < height; i++)
-        bitmap->line[i] = bitmap->line[i - 1] + bitmap->pitch;
+    for (i = 1; i < height; i++) bitmap->line[i] = bitmap->line[i - 1] + bitmap->pitch;
 
     return bitmap;
 }
@@ -68,10 +64,10 @@ bitmap_t* bmp_create(int width, int height, int overdraw) {
     uint8_t* addr;
     int      pitch;
 
-    pitch = width + (overdraw * 2);                                                                       /* left and right */
-    addr  = heap_caps_malloc((pitch * (height + 20)) + overdraw + 3, MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM); /* add max 32-bit aligned adjustment */
-    if (NULL == addr)
-        return NULL;
+    pitch = width + (overdraw * 2); /* left and right */
+    addr  = heap_caps_malloc((pitch * (height + 20)) + overdraw + 3,
+                             MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM); /* add max 32-bit aligned adjustment */
+    if (NULL == addr) return NULL;
 
     return _make_bitmap(addr, true, width, height, width, overdraw);
 }
@@ -84,8 +80,7 @@ bitmap_t* bmp_createhw(uint8_t* addr, int width, int height, int pitch) {
 /* Deallocate space for a bitmap structure */
 void bmp_destroy(bitmap_t** bitmap) {
     if (*bitmap) {
-        if ((*bitmap)->data && false == (*bitmap)->hardware)
-            free((*bitmap)->data);
+        if ((*bitmap)->data && false == (*bitmap)->hardware) free((*bitmap)->data);
         free(*bitmap);
         *bitmap = NULL;
     }

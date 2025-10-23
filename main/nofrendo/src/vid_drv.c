@@ -24,18 +24,18 @@
 */
 
 #include "vid_drv.h"
+#include <string.h>
 #include "bitmap.h"
 #include "gui.h"
 #include "log.h"
 #include "noftypes.h"
 #include "osd.h"
-#include <string.h>
 
 /* hardware surface */
 static bitmap_t* screen = NULL;
 
 /* primary / backbuffer surfaces */
-static bitmap_t* primary_buffer = NULL; //, *back_buffer = NULL;
+static bitmap_t* primary_buffer = NULL;  //, *back_buffer = NULL;
 
 static viddriver_t* driver = NULL;
 
@@ -44,33 +44,33 @@ static viddriver_t* driver = NULL;
     {                                     \
         register int n = (count + 7) / 8; \
         switch (count % 8) {              \
-        case 0:                           \
-            do {                          \
-                {                         \
-                    transfer;             \
-                }                         \
-            case 7: {                     \
-                transfer;                 \
-            }                             \
-            case 6: {                     \
-                transfer;                 \
-            }                             \
-            case 5: {                     \
-                transfer;                 \
-            }                             \
-            case 4: {                     \
-                transfer;                 \
-            }                             \
-            case 3: {                     \
-                transfer;                 \
-            }                             \
-            case 2: {                     \
-                transfer;                 \
-            }                             \
-            case 1: {                     \
-                transfer;                 \
-            }                             \
-            } while (--n > 0);            \
+            case 0:                       \
+                do {                      \
+                    {                     \
+                        transfer;         \
+                    }                     \
+                    case 7: {             \
+                        transfer;         \
+                    }                     \
+                    case 6: {             \
+                        transfer;         \
+                    }                     \
+                    case 5: {             \
+                        transfer;         \
+                    }                     \
+                    case 4: {             \
+                        transfer;         \
+                    }                     \
+                    case 3: {             \
+                        transfer;         \
+                    }                     \
+                    case 2: {             \
+                        transfer;         \
+                    }                     \
+                    case 1: {             \
+                        transfer;         \
+                    }                     \
+                } while (--n > 0);        \
         }                                 \
     }
 
@@ -146,23 +146,18 @@ void vid_setpalette(rgb_t* p) {
 }
 
 /* blits a bitmap onto primary buffer */
-void vid_blit(bitmap_t* bitmap, int src_x, int src_y, int dest_x, int dest_y,
-              int width, int height) {
+void vid_blit(bitmap_t* bitmap, int src_x, int src_y, int dest_x, int dest_y, int width, int height) {
     int      bitmap_pitch, primary_pitch;
     uint8_t *dest_ptr, *src_ptr;
 
     ASSERT(bitmap);
 
     /* clip to source */
-    if (src_y >= bitmap->height)
-        return;
-    if (src_y + height > bitmap->height)
-        height = bitmap->height - src_y;
+    if (src_y >= bitmap->height) return;
+    if (src_y + height > bitmap->height) height = bitmap->height - src_y;
 
-    if (src_x >= bitmap->width)
-        return;
-    if (src_x + width > bitmap->width)
-        width = bitmap->width - src_x;
+    if (src_x >= bitmap->width) return;
+    if (src_x + width > bitmap->width) width = bitmap->width - src_x;
 
     /* clip to dest */
     if (dest_y + height <= 0) {
@@ -173,10 +168,8 @@ void vid_blit(bitmap_t* bitmap, int src_x, int src_y, int dest_x, int dest_y,
         dest_y  = 0;
     }
 
-    if (dest_y >= primary_buffer->height)
-        return;
-    if (dest_y + height > primary_buffer->height)
-        height = primary_buffer->height - dest_y;
+    if (dest_y >= primary_buffer->height) return;
+    if (dest_y + height > primary_buffer->height) height = primary_buffer->height - dest_y;
 
     if (dest_x + width <= 0) {
         return;
@@ -186,10 +179,8 @@ void vid_blit(bitmap_t* bitmap, int src_x, int src_y, int dest_x, int dest_y,
         dest_x  = 0;
     }
 
-    if (dest_x >= primary_buffer->width)
-        return;
-    if (dest_x + width > primary_buffer->width)
-        width = primary_buffer->width - dest_x;
+    if (dest_x >= primary_buffer->width) return;
+    if (dest_x + width > primary_buffer->width) width = primary_buffer->width - dest_x;
 
     src_ptr  = bitmap->line[src_y] + src_x;
     dest_ptr = primary_buffer->line[dest_y] + dest_x;
@@ -253,15 +244,13 @@ static void vid_blitscreen(int num_dirties, rect_t* dirty_rects) {
 
         for (i = 0; i < num_dirties && blit_height; i++) {
             height = rects->h;
-            if (blit_height < height)
-                height = blit_height;
+            if (blit_height < height) height = blit_height;
 
             j = 0;
             DUFFS_DEVICE(
                 {
                     vid_memcpy(screen->line[dest_y + rects->y + j] + rects->x + dest_x,
-                               primary_buffer->line[src_y + rects->y + j] + rects->x + src_x,
-                               rects->w);
+                               primary_buffer->line[src_y + rects->y + j] + rects->x + src_x, rects->w);
                     j++;
                     blit_height--;
                 },
@@ -271,8 +260,7 @@ static void vid_blitscreen(int num_dirties, rect_t* dirty_rects) {
         }
     }
 
-    if (driver->free_write)
-        driver->free_write(num_dirties, dirty_rects);
+    if (driver->free_write) driver->free_write(num_dirties, dirty_rects);
 }
 
 /* TODO: this code is sickly */
@@ -355,16 +343,14 @@ void vid_flush(void) {
 
 /* emulated machine tells us which resolution it wants */
 int vid_setmode(int width, int height) {
-    if (NULL != primary_buffer)
-        bmp_destroy(&primary_buffer);
+    if (NULL != primary_buffer) bmp_destroy(&primary_buffer);
     //   if (NULL != back_buffer)
     //      bmp_destroy(&back_buffer);
 
     primary_buffer = bmp_create(width, height, 0); /* no overdraw */
-    if (NULL == primary_buffer)
-        return -1;
+    if (NULL == primary_buffer) return -1;
 
-        /* Create our backbuffer */
+    /* Create our backbuffer */
 #if 0
    back_buffer = bmp_create(width, height, 0); /* no overdraw */
    if (NULL == back_buffer)
@@ -398,11 +384,9 @@ static int vid_findmode(int width, int height, viddriver_t* osd_driver) {
         bmp_clear(screen, GUI_BLACK);
 
     /* release surface */
-    if (driver->free_write)
-        driver->free_write(-1, NULL);
+    if (driver->free_write) driver->free_write(-1, NULL);
 
-    log_printf("video driver: %s at %dx%d\n", driver->name,
-               screen->width, screen->height);
+    log_printf("video driver: %s at %dx%d\n", driver->name, screen->width, screen->height);
 
     return 0;
 }
@@ -410,8 +394,7 @@ static int vid_findmode(int width, int height, viddriver_t* osd_driver) {
 /* This is the interface to the drivers, used in nofrendo.c */
 int vid_init(int width, int height, viddriver_t* osd_driver) {
     if (vid_findmode(width, height, osd_driver)) {
-        log_printf("video initialization failed for %s at %dx%d\n",
-                   osd_driver->name, width, height);
+        log_printf("video initialization failed for %s at %dx%d\n", osd_driver->name, width, height);
         return -1;
     }
     log_printf("vid_init done\n");
@@ -420,18 +403,15 @@ int vid_init(int width, int height, viddriver_t* osd_driver) {
 }
 
 void vid_shutdown(void) {
-    if (NULL == driver)
-        return;
+    if (NULL == driver) return;
 
-    if (NULL != primary_buffer)
-        bmp_destroy(&primary_buffer);
+    if (NULL != primary_buffer) bmp_destroy(&primary_buffer);
 #if 0
    if (NULL != back_buffer)
       bmp_destroy(&back_buffer);
 #endif
 
-    if (driver && driver->shutdown)
-        driver->shutdown();
+    if (driver && driver->shutdown) driver->shutdown();
 }
 
 /*

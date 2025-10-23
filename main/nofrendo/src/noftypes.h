@@ -3,14 +3,14 @@
 **
 **
 ** This program is free software; you can redistribute it and/or
-** modify it under the terms of version 2 of the GNU Library General 
+** modify it under the terms of version 2 of the GNU Library General
 ** Public License as published by the Free Software Foundation.
 **
-** This program is distributed in the hope that it will be useful, 
+** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-** Library General Public License for more details.  To obtain a 
-** copy of the GNU Library General Public License, write to the Free 
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+** Library General Public License for more details.  To obtain a
+** copy of the GNU Library General Public License, write to the Free
 ** Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 ** Any permitted reproduction of these routines, in whole or in part,
@@ -27,46 +27,45 @@
 #define _TYPES_H_
 
 /* Define this if running on little-endian (x86) systems */
-#define  HOST_LITTLE_ENDIAN
+#define HOST_LITTLE_ENDIAN
 
 #ifdef __GNUC__
-#define  INLINE      static inline
-#define  ZERO_LENGTH 0
+#define INLINE      static inline
+#define ZERO_LENGTH 0
 #elif defined(WIN32)
-#define  INLINE      static __inline
-#define  ZERO_LENGTH 0
+#define INLINE      static __inline
+#define ZERO_LENGTH 0
 #else /* crapintosh? */
-#define  INLINE      static
-#define  ZERO_LENGTH 1
+#define INLINE      static
+#define ZERO_LENGTH 1
 #endif
 
 /* quell stupid compiler warnings */
-#define  UNUSED(x)   ((x) = (x))
+#define UNUSED(x) ((x) = (x))
 
 #ifndef bool
-typedef enum
-{
-   false = 0,
-   true = 1
+typedef enum {
+    false = 0,
+    true  = 1
 } bool;
 
-#ifndef  NULL
-#define  NULL     ((void *) 0)
+#ifndef NULL
+#define NULL ((void*)0)
 #endif
 #endif /* !__cplusplus */
 
-#include "memguard.h"
 #include "log.h"
+#include "memguard.h"
 
 #ifdef NOFRENDO_DEBUG
 
-#define  ASSERT(expr)      log_assert((int) (expr), __LINE__, __FILE__, NULL)
-#define  ASSERT_MSG(msg)   log_assert(false, __LINE__, __FILE__, (msg))
+#define ASSERT(expr)    log_assert((int)(expr), __LINE__, __FILE__, NULL)
+#define ASSERT_MSG(msg) log_assert(false, __LINE__, __FILE__, (msg))
 
 #else /* !NOFRENDO_DEBUG */
 
-#define  ASSERT(expr)
-#define  ASSERT_MSG(msg)
+#define ASSERT(expr)
+#define ASSERT_MSG(msg)
 
 #endif /* !NOFRENDO_DEBUG */
 

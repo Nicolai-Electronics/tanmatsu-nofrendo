@@ -6,17 +6,17 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-#include "esp_err.h"
-#include "esp_heap_caps.h"
-#include "esp_log.h"
-#include "freertos/FreeRTOS.h" // IWYU pragma: keep
-#include "freertos/task.h"
-#include "kbdcontroller.h"
-#include "sdcard.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "esp_err.h"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"  // IWYU pragma: keep
+#include "freertos/task.h"
+#include "kbdcontroller.h"
+#include "sdcard.h"
 // #include "decode_image.h"
 #include <pretty_effect.h>
 // #include "driver/ledc.h"
@@ -59,8 +59,8 @@ static uint16_t* fb_y_pos[240];
 #define LEDC_LS_CH3_CHANNEL LEDC_CHANNEL_3
 
 // TODO: Use the backlight brightness from the menu instead of just 100
-#define LCD_BKG_ON()       bsp_set_backlight_brightness(100) // Backlight ON
-#define LCD_BKG_OFF()      bsp_set_backlight_brightness(0)   // Backlight OFF
+#define LCD_BKG_ON()       bsp_set_backlight_brightness(100)  // Backlight ON
+#define LCD_BKG_OFF()      bsp_set_backlight_brightness(0)    // Backlight OFF
 // To speed up transfers, every SPI transfer sends a bunch of rows. This define specifies how many. More means more
 // memory use, but less overhead for setting up / finishing transfers. Make sure 240 is dividable by this.
 #define FRAMEBUFFER_HEIGHT 4
@@ -72,8 +72,7 @@ static uint16_t* fb_y_pos[240];
 
 static void send_frame(uint16_t* fb_in) {
     // TODO: Add the PPA scaler + render code here
-    mipi_blit(
-        fb_in, MENU_FB_W, MENU_FB_H, 0, 0, 320, 240);
+    mipi_blit(fb_in, MENU_FB_W, MENU_FB_H, 0, 0, 320, 240);
 }
 
 static void initRenderBuffers(void) {
@@ -86,7 +85,8 @@ static void initRenderBuffers(void) {
 
     // Setup the local render buffer
     ESP_LOGD(TAG, "Setup local render buffer");
-    prescale_fb = (uint16_t*)heap_caps_malloc(MENU_FB_W * MENU_FB_H * sizeof(uint16_t), MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
+    prescale_fb =
+        (uint16_t*)heap_caps_malloc(MENU_FB_W * MENU_FB_H * sizeof(uint16_t), MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
     assert(prescale_fb != NULL);
 
     // Setup the line pointer array
@@ -140,7 +140,7 @@ static char* selectRomFromMenu() {
 void initBl() {
     // Ignore LED 0 as it's the power LED
     for (uint8_t i = 1; i < 6; i++) {
-        set_led_color(i, 0x000000); // Black
+        set_led_color(i, 0x000000);  // Black
     }
     // show_led_colors();
     // ledc_timer_config_t ledc_timer = {

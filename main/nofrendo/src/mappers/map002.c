@@ -34,23 +34,19 @@ static void map2_write(uint32_t address, uint8_t value) {
     mmc_bankrom(16, 0x8000, value);
 }
 
-static map_memwrite map2_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map2_write},
-        {-1, -1, NULL}};
+static map_memwrite map2_memwrite[] = {{0x8000, 0xFFFF, map2_write}, {-1, -1, NULL}};
 
-mapintf_t map2_intf =
-    {
-        2,             /* mapper number */
-        "UNROM",       /* mapper name */
-        NULL,          /* init routine */
-        NULL,          /* vblank callback */
-        NULL,          /* hblank callback */
-        NULL,          /* get state (snss) */
-        NULL,          /* set state (snss) */
-        NULL,          /* memory read structure */
-        map2_memwrite, /* memory write structure */
-        NULL           /* external sound device */
+mapintf_t map2_intf = {
+    2,             /* mapper number */
+    "UNROM",       /* mapper name */
+    NULL,          /* init routine */
+    NULL,          /* vblank callback */
+    NULL,          /* hblank callback */
+    NULL,          /* get state (snss) */
+    NULL,          /* set state (snss) */
+    NULL,          /* memory read structure */
+    map2_memwrite, /* memory write structure */
+    NULL           /* external sound device */
 };
 
 /*

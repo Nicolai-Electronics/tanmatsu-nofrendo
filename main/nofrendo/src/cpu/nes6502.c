@@ -24,8 +24,8 @@
 */
 
 #include "nes6502.h"
-#include "dis6502.h"
 #include <noftypes.h>
+#include "dis6502.h"
 
 // #define  NES6502_DISASM
 
@@ -42,10 +42,9 @@
 /*
 ** Check to see if an index reg addition overflowed to next page
 */
-#define PAGE_CROSS_CHECK(addr, reg)  \
-    {                                \
-        if ((reg) > (uint8_t)(addr)) \
-            ADD_CYCLES(1);           \
+#define PAGE_CROSS_CHECK(addr, reg)                 \
+    {                                               \
+        if ((reg) > (uint8_t)(addr)) ADD_CYCLES(1); \
     }
 
 #define EMPTY_READ(value) /* empty */
@@ -253,26 +252,25 @@
     }
 
 /* Combine flags into flag register */
-#define COMBINE_FLAGS() \
-    (                   \
-        (n_flag & N_FLAG) | (v_flag ? V_FLAG : 0) | R_FLAG | (b_flag ? B_FLAG : 0) | (d_flag ? D_FLAG : 0) | (i_flag ? I_FLAG : 0) | (z_flag ? 0 : Z_FLAG) | c_flag)
+#define COMBINE_FLAGS()                                                                                   \
+    ((n_flag & N_FLAG) | (v_flag ? V_FLAG : 0) | R_FLAG | (b_flag ? B_FLAG : 0) | (d_flag ? D_FLAG : 0) | \
+     (i_flag ? I_FLAG : 0) | (z_flag ? 0 : Z_FLAG) | c_flag)
 
 /* Set N and Z flags based on given value */
 #define SET_NZ_FLAGS(value) n_flag = z_flag = (value);
 
 /* For BCC, BCS, BEQ, BMI, BNE, BPL, BVC, BVS */
-#define RELATIVE_BRANCH(condition)                       \
-    {                                                    \
-        if (condition) {                                 \
-            IMMEDIATE_BYTE(btemp);                       \
-            if (((int8_t)btemp + (PC & 0x00FF)) & 0x100) \
-                ADD_CYCLES(1);                           \
-            ADD_CYCLES(3);                               \
-            PC += (int8_t)btemp;                         \
-        } else {                                         \
-            PC++;                                        \
-            ADD_CYCLES(2);                               \
-        }                                                \
+#define RELATIVE_BRANCH(condition)                                      \
+    {                                                                   \
+        if (condition) {                                                \
+            IMMEDIATE_BYTE(btemp);                                      \
+            if (((int8_t)btemp + (PC & 0x00FF)) & 0x100) ADD_CYCLES(1); \
+            ADD_CYCLES(3);                                              \
+            PC += (int8_t)btemp;                                        \
+        } else {                                                        \
+            PC++;                                                       \
+            ADD_CYCLES(2);                                              \
+        }                                                               \
     }
 
 #define JUMP(address)                  \
@@ -314,8 +312,7 @@
         read_func(data);                                   \
         if (d_flag) {                                      \
             temp = (A & 0x0F) + (data & 0x0F) + c_flag;    \
-            if (temp >= 10)                                \
-                temp = (temp - 10) | 0x10;                 \
+            if (temp >= 10) temp = (temp - 10) | 0x10;     \
             temp   += (A & 0xF0) + (data & 0xF0);          \
             z_flag  = (A + data + c_flag) & 0xFF;          \
             n_flag  = temp;                                \
@@ -378,30 +375,29 @@
 
 /* undocumented */
 #ifdef NES6502_DECIMAL
-#define ARR(cycles, read_func)                                   \
-    {                                                            \
-        read_func(data);                                         \
-        data &= A;                                               \
-        if (d_flag) {                                            \
-            temp = (data >> 1) | (c_flag << 7);                  \
-            SET_NZ_FLAGS(temp);                                  \
-            v_flag = (temp ^ data) & 0x40;                       \
-            if (((data & 0x0F) + (data & 0x01)) > 5)             \
-                temp = (temp & 0xF0) | ((temp + 0x6) & 0x0F);    \
-            if (((data & 0xF0) + (data & 0x10)) > 0x50) {        \
-                temp   = (temp & 0x0F) | ((temp + 0x60) & 0xF0); \
-                c_flag = 1;                                      \
-            } else {                                             \
-                c_flag = 0;                                      \
-            }                                                    \
-            A = (uint8_t)temp;                                   \
-        } else {                                                 \
-            A = (data >> 1) | (c_flag << 7);                     \
-            SET_NZ_FLAGS(A);                                     \
-            c_flag = (A & 0x40) >> 6;                            \
-            v_flag = ((A >> 6) ^ (A >> 5)) & 1;                  \
-        }                                                        \
-        ADD_CYCLES(cycles);                                      \
+#define ARR(cycles, read_func)                                                                     \
+    {                                                                                              \
+        read_func(data);                                                                           \
+        data &= A;                                                                                 \
+        if (d_flag) {                                                                              \
+            temp = (data >> 1) | (c_flag << 7);                                                    \
+            SET_NZ_FLAGS(temp);                                                                    \
+            v_flag = (temp ^ data) & 0x40;                                                         \
+            if (((data & 0x0F) + (data & 0x01)) > 5) temp = (temp & 0xF0) | ((temp + 0x6) & 0x0F); \
+            if (((data & 0xF0) + (data & 0x10)) > 0x50) {                                          \
+                temp   = (temp & 0x0F) | ((temp + 0x60) & 0xF0);                                   \
+                c_flag = 1;                                                                        \
+            } else {                                                                               \
+                c_flag = 0;                                                                        \
+            }                                                                                      \
+            A = (uint8_t)temp;                                                                     \
+        } else {                                                                                   \
+            A = (data >> 1) | (c_flag << 7);                                                       \
+            SET_NZ_FLAGS(A);                                                                       \
+            c_flag = (A & 0x40) >> 6;                                                              \
+            v_flag = ((A >> 6) ^ (A >> 5)) & 1;                                                    \
+        }                                                                                          \
+        ADD_CYCLES(cycles);                                                                        \
     }
 #else
 #define ARR(cycles, read_func)               \
@@ -470,9 +466,9 @@
         ADD_CYCLES(cycles);     \
     }
 
-#define BMI()                            \
-    {                                    \
-        RELATIVE_BRANCH(n_flag& N_FLAG); \
+#define BMI()                             \
+    {                                     \
+        RELATIVE_BRANCH(n_flag & N_FLAG); \
     }
 
 #define BNE()                         \
@@ -1129,7 +1125,7 @@ INLINE uint32_t zp_readword(register uint8_t address) {
 #ifdef TARGET_CPU_PPC
     return __lhbrx(ram, address);
 #else  /* !TARGET_CPU_PPC */
-    uint32_t x = (uint32_t) * (uint16_t*)(ram + address);
+    uint32_t x = (uint32_t)*(uint16_t*)(ram + address);
     return (x << 8) | (x >> 8);
 #endif /* !TARGET_CPU_PPC */
 }
@@ -1138,7 +1134,7 @@ INLINE uint32_t bank_readword(register uint32_t address) {
 #ifdef TARGET_CPU_PPC
     return __lhbrx(cpu.mem_page[address >> NES6502_BANKSHIFT], address & NES6502_BANKMASK);
 #else  /* !TARGET_CPU_PPC */
-    uint32_t x = (uint32_t) * (uint16_t*)(cpu.mem_page[address >> NES6502_BANKSHIFT] + (address & NES6502_BANKMASK));
+    uint32_t x = (uint32_t)*(uint16_t*)(cpu.mem_page[address >> NES6502_BANKSHIFT] + (address & NES6502_BANKMASK));
     return (x << 8) | (x >> 8);
 #endif /* !TARGET_CPU_PPC */
 }
@@ -1168,8 +1164,7 @@ static uint8_t mem_readbyte(uint32_t address) {
     /* check memory range handlers */
     else {
         for (mr = cpu.read_handler; mr->min_range != 0xFFFFFFFF; mr++) {
-            if (address >= mr->min_range && address <= mr->max_range)
-                return mr->read_func(address);
+            if (address >= mr->min_range && address <= mr->max_range) return mr->read_func(address);
         }
     }
 
@@ -1211,8 +1206,7 @@ void nes6502_setcontext(nes6502_context* context) {
 
     /* set dead page for all pages not pointed at anything */
     for (loop = 0; loop < NES6502_NUMBANKS; loop++) {
-        if (NULL == cpu.mem_page[loop])
-            cpu.mem_page[loop] = null_page;
+        if (NULL == cpu.mem_page[loop]) cpu.mem_page[loop] = null_page;
     }
 
     ram   = cpu.mem_page[0]; /* quick zero-page/RAM references */
@@ -1229,8 +1223,7 @@ void nes6502_getcontext(nes6502_context* context) {
 
     /* reset dead pages to null */
     for (loop = 0; loop < NES6502_NUMBANKS; loop++) {
-        if (null_page == context->mem_page[loop])
-            context->mem_page[loop] = NULL;
+        if (null_page == context->mem_page[loop]) context->mem_page[loop] = NULL;
     }
 }
 
@@ -1243,8 +1236,7 @@ uint8_t nes6502_getbyte(uint32_t address) {
 uint32_t nes6502_getcycles(bool reset_flag) {
     uint32_t cycles = cpu.total_cycles;
 
-    if (reset_flag)
-        cpu.total_cycles = 0;
+    if (reset_flag) cpu.total_cycles = 0;
 
     return cycles;
 }
@@ -1277,16 +1269,14 @@ uint32_t nes6502_getcycles(bool reset_flag) {
 #ifdef NES6502_DISASM
 
 #define OPCODE_END                                               \
-    if (remaining_cycles <= 0)                                   \
-        goto end_execute;                                        \
+    if (remaining_cycles <= 0) goto end_execute;                 \
     log_printf(nes6502_disasm(PC, COMBINE_FLAGS(), A, X, Y, S)); \
     goto* opcode_table[bank_readbyte(PC++)];
 
 #else /* !NES6520_DISASM */
 
-#define OPCODE_END             \
-    if (remaining_cycles <= 0) \
-        goto end_execute;      \
+#define OPCODE_END                               \
+    if (remaining_cycles <= 0) goto end_execute; \
     goto* opcode_table[bank_readbyte(PC++)];
 
 #endif /* !NES6502_DISASM */
@@ -1318,40 +1308,26 @@ int nes6502_execute(int timeslice_cycles) {
 
 #ifdef NES6502_JUMPTABLE
 
-    static const void* opcode_table[256] =
-        {
-            &&op00, &&op01, &&op02, &&op03, &&op04, &&op05, &&op06, &&op07,
-            &&op08, &&op09, &&op0A, &&op0B, &&op0C, &&op0D, &&op0E, &&op0F,
-            &&op10, &&op11, &&op12, &&op13, &&op14, &&op15, &&op16, &&op17,
-            &&op18, &&op19, &&op1A, &&op1B, &&op1C, &&op1D, &&op1E, &&op1F,
-            &&op20, &&op21, &&op22, &&op23, &&op24, &&op25, &&op26, &&op27,
-            &&op28, &&op29, &&op2A, &&op2B, &&op2C, &&op2D, &&op2E, &&op2F,
-            &&op30, &&op31, &&op32, &&op33, &&op34, &&op35, &&op36, &&op37,
-            &&op38, &&op39, &&op3A, &&op3B, &&op3C, &&op3D, &&op3E, &&op3F,
-            &&op40, &&op41, &&op42, &&op43, &&op44, &&op45, &&op46, &&op47,
-            &&op48, &&op49, &&op4A, &&op4B, &&op4C, &&op4D, &&op4E, &&op4F,
-            &&op50, &&op51, &&op52, &&op53, &&op54, &&op55, &&op56, &&op57,
-            &&op58, &&op59, &&op5A, &&op5B, &&op5C, &&op5D, &&op5E, &&op5F,
-            &&op60, &&op61, &&op62, &&op63, &&op64, &&op65, &&op66, &&op67,
-            &&op68, &&op69, &&op6A, &&op6B, &&op6C, &&op6D, &&op6E, &&op6F,
-            &&op70, &&op71, &&op72, &&op73, &&op74, &&op75, &&op76, &&op77,
-            &&op78, &&op79, &&op7A, &&op7B, &&op7C, &&op7D, &&op7E, &&op7F,
-            &&op80, &&op81, &&op82, &&op83, &&op84, &&op85, &&op86, &&op87,
-            &&op88, &&op89, &&op8A, &&op8B, &&op8C, &&op8D, &&op8E, &&op8F,
-            &&op90, &&op91, &&op92, &&op93, &&op94, &&op95, &&op96, &&op97,
-            &&op98, &&op99, &&op9A, &&op9B, &&op9C, &&op9D, &&op9E, &&op9F,
-            &&opA0, &&opA1, &&opA2, &&opA3, &&opA4, &&opA5, &&opA6, &&opA7,
-            &&opA8, &&opA9, &&opAA, &&opAB, &&opAC, &&opAD, &&opAE, &&opAF,
-            &&opB0, &&opB1, &&opB2, &&opB3, &&opB4, &&opB5, &&opB6, &&opB7,
-            &&opB8, &&opB9, &&opBA, &&opBB, &&opBC, &&opBD, &&opBE, &&opBF,
-            &&opC0, &&opC1, &&opC2, &&opC3, &&opC4, &&opC5, &&opC6, &&opC7,
-            &&opC8, &&opC9, &&opCA, &&opCB, &&opCC, &&opCD, &&opCE, &&opCF,
-            &&opD0, &&opD1, &&opD2, &&opD3, &&opD4, &&opD5, &&opD6, &&opD7,
-            &&opD8, &&opD9, &&opDA, &&opDB, &&opDC, &&opDD, &&opDE, &&opDF,
-            &&opE0, &&opE1, &&opE2, &&opE3, &&opE4, &&opE5, &&opE6, &&opE7,
-            &&opE8, &&opE9, &&opEA, &&opEB, &&opEC, &&opED, &&opEE, &&opEF,
-            &&opF0, &&opF1, &&opF2, &&opF3, &&opF4, &&opF5, &&opF6, &&opF7,
-            &&opF8, &&opF9, &&opFA, &&opFB, &&opFC, &&opFD, &&opFE, &&opFF};
+    static const void* opcode_table[256] = {
+        &&op00, &&op01, &&op02, &&op03, &&op04, &&op05, &&op06, &&op07, &&op08, &&op09, &&op0A, &&op0B, &&op0C, &&op0D,
+        &&op0E, &&op0F, &&op10, &&op11, &&op12, &&op13, &&op14, &&op15, &&op16, &&op17, &&op18, &&op19, &&op1A, &&op1B,
+        &&op1C, &&op1D, &&op1E, &&op1F, &&op20, &&op21, &&op22, &&op23, &&op24, &&op25, &&op26, &&op27, &&op28, &&op29,
+        &&op2A, &&op2B, &&op2C, &&op2D, &&op2E, &&op2F, &&op30, &&op31, &&op32, &&op33, &&op34, &&op35, &&op36, &&op37,
+        &&op38, &&op39, &&op3A, &&op3B, &&op3C, &&op3D, &&op3E, &&op3F, &&op40, &&op41, &&op42, &&op43, &&op44, &&op45,
+        &&op46, &&op47, &&op48, &&op49, &&op4A, &&op4B, &&op4C, &&op4D, &&op4E, &&op4F, &&op50, &&op51, &&op52, &&op53,
+        &&op54, &&op55, &&op56, &&op57, &&op58, &&op59, &&op5A, &&op5B, &&op5C, &&op5D, &&op5E, &&op5F, &&op60, &&op61,
+        &&op62, &&op63, &&op64, &&op65, &&op66, &&op67, &&op68, &&op69, &&op6A, &&op6B, &&op6C, &&op6D, &&op6E, &&op6F,
+        &&op70, &&op71, &&op72, &&op73, &&op74, &&op75, &&op76, &&op77, &&op78, &&op79, &&op7A, &&op7B, &&op7C, &&op7D,
+        &&op7E, &&op7F, &&op80, &&op81, &&op82, &&op83, &&op84, &&op85, &&op86, &&op87, &&op88, &&op89, &&op8A, &&op8B,
+        &&op8C, &&op8D, &&op8E, &&op8F, &&op90, &&op91, &&op92, &&op93, &&op94, &&op95, &&op96, &&op97, &&op98, &&op99,
+        &&op9A, &&op9B, &&op9C, &&op9D, &&op9E, &&op9F, &&opA0, &&opA1, &&opA2, &&opA3, &&opA4, &&opA5, &&opA6, &&opA7,
+        &&opA8, &&opA9, &&opAA, &&opAB, &&opAC, &&opAD, &&opAE, &&opAF, &&opB0, &&opB1, &&opB2, &&opB3, &&opB4, &&opB5,
+        &&opB6, &&opB7, &&opB8, &&opB9, &&opBA, &&opBB, &&opBC, &&opBD, &&opBE, &&opBF, &&opC0, &&opC1, &&opC2, &&opC3,
+        &&opC4, &&opC5, &&opC6, &&opC7, &&opC8, &&opC9, &&opCA, &&opCB, &&opCC, &&opCD, &&opCE, &&opCF, &&opD0, &&opD1,
+        &&opD2, &&opD3, &&opD4, &&opD5, &&opD6, &&opD7, &&opD8, &&opD9, &&opDA, &&opDB, &&opDC, &&opDD, &&opDE, &&opDF,
+        &&opE0, &&opE1, &&opE2, &&opE3, &&opE4, &&opE5, &&opE6, &&opE7, &&opE8, &&opE9, &&opEA, &&opEB, &&opEC, &&opED,
+        &&opEE, &&opEF, &&opF0, &&opF1, &&opF2, &&opF3, &&opF4, &&opF5, &&opF6, &&opF7, &&opF8, &&opF9, &&opFA, &&opFB,
+        &&opFC, &&opFD, &&opFE, &&opFF};
 
 #endif /* NES6502_JUMPTABLE */
 

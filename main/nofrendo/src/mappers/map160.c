@@ -28,8 +28,7 @@
 #include <nes_ppu.h>
 #include <noftypes.h>
 
-static struct
-{
+static struct {
     bool enabled, expired;
     int  counter;
     int  latch_c005, latch_c003;
@@ -82,23 +81,19 @@ static void map160_init(void) {
     irq.latch_c003 = irq.latch_c005 = 0;
 }
 
-static map_memwrite map160_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map160_write},
-        {-1, -1, NULL}};
+static map_memwrite map160_memwrite[] = {{0x8000, 0xFFFF, map160_write}, {-1, -1, NULL}};
 
-mapintf_t map160_intf =
-    {
-        160,                /* mapper number */
-        "Aladdin (pirate)", /* mapper name */
-        map160_init,        /* init routine */
-        NULL,               /* vblank callback */
-        map160_hblank,      /* hblank callback */
-        NULL,               /* get state (snss) */
-        NULL,               /* set state (snss) */
-        NULL,               /* memory read structure */
-        map160_memwrite,    /* memory write structure */
-        NULL                /* external sound device */
+mapintf_t map160_intf = {
+    160,                /* mapper number */
+    "Aladdin (pirate)", /* mapper name */
+    map160_init,        /* init routine */
+    NULL,               /* vblank callback */
+    map160_hblank,      /* hblank callback */
+    NULL,               /* get state (snss) */
+    NULL,               /* set state (snss) */
+    NULL,               /* memory read structure */
+    map160_memwrite,    /* memory write structure */
+    NULL                /* external sound device */
 };
 
 /*

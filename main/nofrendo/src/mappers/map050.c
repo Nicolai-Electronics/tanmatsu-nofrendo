@@ -32,8 +32,7 @@
 #include <nes_mmc.h>
 #include <noftypes.h>
 
-static struct
-{
+static struct {
     bool     enabled;
     uint32_t counter;
 } irq;
@@ -99,8 +98,7 @@ static void map50_write(uint32_t address, uint8_t value) {
     uint8_t selectable_bank;
 
     /* For address to be decoded, A5 must be high and A6 low */
-    if ((address & 0x60) != 0x20)
-        return;
+    if ((address & 0x60) != 0x20) return;
 
     /* A8 low  = $C000-$DFFF page selection */
     /* A8 high = IRQ timer toggle */
@@ -113,14 +111,10 @@ static void map50_write(uint32_t address, uint8_t value) {
     } else {
         /* Stupid data line swapping */
         selectable_bank = 0x00;
-        if (value & 0x08)
-            selectable_bank |= 0x08;
-        if (value & 0x04)
-            selectable_bank |= 0x02;
-        if (value & 0x02)
-            selectable_bank |= 0x01;
-        if (value & 0x01)
-            selectable_bank |= 0x04;
+        if (value & 0x08) selectable_bank |= 0x08;
+        if (value & 0x04) selectable_bank |= 0x02;
+        if (value & 0x02) selectable_bank |= 0x01;
+        if (value & 0x01) selectable_bank |= 0x04;
         mmc_bankrom(8, 0xC000, selectable_bank);
     }
 
@@ -150,23 +144,19 @@ static void map50_getstate(SnssMapperBlock* state) {
     return;
 }
 
-static map_memwrite map50_memwrite[] =
-    {
-        {0x4000, 0x5FFF, map50_write},
-        {-1, -1, NULL}};
+static map_memwrite map50_memwrite[] = {{0x4000, 0x5FFF, map50_write}, {-1, -1, NULL}};
 
-mapintf_t map50_intf =
-    {
-        50,                               /* Mapper number */
-        "SMB2j (3rd discovered variant)", /* Mapper name */
-        map50_init,                       /* Initialization routine */
-        NULL,                             /* VBlank callback */
-        map50_hblank,                     /* HBlank callback */
-        map50_getstate,                   /* Get state (SNSS) */
-        map50_setstate,                   /* Set state (SNSS) */
-        NULL,                             /* Memory read structure */
-        map50_memwrite,                   /* Memory write structure */
-        NULL                              /* External sound device */
+mapintf_t map50_intf = {
+    50,                               /* Mapper number */
+    "SMB2j (3rd discovered variant)", /* Mapper name */
+    map50_init,                       /* Initialization routine */
+    NULL,                             /* VBlank callback */
+    map50_hblank,                     /* HBlank callback */
+    map50_getstate,                   /* Get state (SNSS) */
+    map50_setstate,                   /* Set state (SNSS) */
+    NULL,                             /* Memory read structure */
+    map50_memwrite,                   /* Memory write structure */
+    NULL                              /* External sound device */
 };
 
 /*

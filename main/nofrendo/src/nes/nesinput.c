@@ -43,8 +43,7 @@ static int retrieve_type(int type) {
     for (i = 0; i < active_entries; i++) {
         ASSERT(nes_input[i]);
 
-        if (type == nes_input[i]->type)
-            value |= nes_input[i]->data;
+        if (type == nes_input[i]->type) value |= nes_input[i]->data;
     }
 
     return value;
@@ -56,11 +55,9 @@ static uint8_t get_pad0(void) {
     value = (uint8_t)retrieve_type(INP_JOYPAD0);
 
     /* mask out left/right simultaneous keypresses */
-    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
-        value &= ~(INP_PAD_UP | INP_PAD_DOWN);
+    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN)) value &= ~(INP_PAD_UP | INP_PAD_DOWN);
 
-    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
-        value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
+    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT)) value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
 
     /* return (0x40 | value) due to bus conflicts */
     return (0x40 | ((value >> pad0_readcount++) & 1));
@@ -72,11 +69,9 @@ static uint8_t get_pad1(void) {
     value = (uint8_t)retrieve_type(INP_JOYPAD1);
 
     /* mask out left/right simultaneous keypresses */
-    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN))
-        value &= ~(INP_PAD_UP | INP_PAD_DOWN);
+    if ((value & INP_PAD_UP) && (value & INP_PAD_DOWN)) value &= ~(INP_PAD_UP | INP_PAD_DOWN);
 
-    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT))
-        value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
+    if ((value & INP_PAD_LEFT) && (value & INP_PAD_RIGHT)) value &= ~(INP_PAD_LEFT | INP_PAD_RIGHT);
 
     /* return (0x40 | value) due to bus conflicts */
     return (0x40 | ((value >> pad1_readcount++) & 1));
@@ -92,10 +87,8 @@ static uint8_t get_powerpad(void) {
 
     value = retrieve_type(INP_POWERPAD);
 
-    if (((value >> 8) >> ppad_readcount) & 1)
-        ret_val |= 0x10;
-    if (((value & 0xFF) >> ppad_readcount) & 1)
-        ret_val |= 0x08;
+    if (((value >> 8) >> ppad_readcount) & 1) ret_val |= 0x10;
+    if (((value & 0xFF) >> ppad_readcount) & 1) ret_val |= 0x08;
 
     ppad_readcount++;
 
@@ -123,28 +116,20 @@ static uint8_t get_arkanoid(void) {
 uint8_t input_get(int types) {
     uint8_t value = 0;
 
-    if (types & INP_JOYPAD0)
-        value |= get_pad0();
-    if (types & INP_JOYPAD1)
-        value |= get_pad1();
-    if (types & INP_ZAPPER)
-        value |= get_zapper();
-    if (types & INP_POWERPAD)
-        value |= get_powerpad();
-    if (types & INP_VSDIPSW0)
-        value |= get_vsdips0();
-    if (types & INP_VSDIPSW1)
-        value |= get_vsdips1();
-    if (types & INP_ARKANOID)
-        value |= get_arkanoid();
+    if (types & INP_JOYPAD0) value |= get_pad0();
+    if (types & INP_JOYPAD1) value |= get_pad1();
+    if (types & INP_ZAPPER) value |= get_zapper();
+    if (types & INP_POWERPAD) value |= get_powerpad();
+    if (types & INP_VSDIPSW0) value |= get_vsdips0();
+    if (types & INP_VSDIPSW1) value |= get_vsdips1();
+    if (types & INP_ARKANOID) value |= get_arkanoid();
 
     return value;
 }
 
 /* register an input type */
 void input_register(nesinput_t* input) {
-    if (NULL == input)
-        return;
+    if (NULL == input) return;
 
     nes_input[active_entries] = input;
     active_entries++;

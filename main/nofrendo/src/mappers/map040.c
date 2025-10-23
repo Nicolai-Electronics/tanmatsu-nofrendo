@@ -31,8 +31,7 @@
 
 #define MAP40_IRQ_PERIOD (4096 / 113.666666)
 
-static struct
-{
+static struct {
     int enabled, counter;
 } irq;
 
@@ -63,21 +62,21 @@ static void map40_write(uint32_t address, uint8_t value) {
     int range = (address >> 13) - 4;
 
     switch (range) {
-    case 0: /* 0x8000-0x9FFF */
-        irq.enabled = false;
-        irq.counter = (int)MAP40_IRQ_PERIOD;
-        break;
+        case 0: /* 0x8000-0x9FFF */
+            irq.enabled = false;
+            irq.counter = (int)MAP40_IRQ_PERIOD;
+            break;
 
-    case 1: /* 0xA000-0xBFFF */
-        irq.enabled = true;
-        break;
+        case 1: /* 0xA000-0xBFFF */
+            irq.enabled = true;
+            break;
 
-    case 3: /* 0xE000-0xFFFF */
-        mmc_bankrom(8, 0xC000, value & 7);
-        break;
+        case 3: /* 0xE000-0xFFFF */
+            mmc_bankrom(8, 0xC000, value & 7);
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 }
 
@@ -91,23 +90,19 @@ static void map40_setstate(SnssMapperBlock* state) {
     irq.enabled = state->extraData.mapper40.irqCounterEnabled;
 }
 
-static map_memwrite map40_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map40_write},
-        {-1, -1, NULL}};
+static map_memwrite map40_memwrite[] = {{0x8000, 0xFFFF, map40_write}, {-1, -1, NULL}};
 
-mapintf_t map40_intf =
-    {
-        40,                /* mapper number */
-        "SMB 2j (pirate)", /* mapper name */
-        map40_init,        /* init routine */
-        NULL,              /* vblank callback */
-        map40_hblank,      /* hblank callback */
-        map40_getstate,    /* get state (snss) */
-        map40_setstate,    /* set state (snss) */
-        NULL,              /* memory read structure */
-        map40_memwrite,    /* memory write structure */
-        NULL               /* external sound device */
+mapintf_t map40_intf = {
+    40,                /* mapper number */
+    "SMB 2j (pirate)", /* mapper name */
+    map40_init,        /* init routine */
+    NULL,              /* vblank callback */
+    map40_hblank,      /* hblank callback */
+    map40_getstate,    /* get state (snss) */
+    map40_setstate,    /* set state (snss) */
+    NULL,              /* memory read structure */
+    map40_memwrite,    /* memory write structure */
+    NULL               /* external sound device */
 };
 
 /*

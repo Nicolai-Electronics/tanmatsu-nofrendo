@@ -53,23 +53,19 @@ static void map70_write(uint32_t address, uint8_t value) {
     }
 }
 
-static map_memwrite map70_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map70_write},
-        {-1, -1, NULL}};
+static map_memwrite map70_memwrite[] = {{0x8000, 0xFFFF, map70_write}, {-1, -1, NULL}};
 
-mapintf_t map70_intf =
-    {
-        70,             /* mapper number */
-        "Mapper 70",    /* mapper name */
-        NULL,           /* init routine */
-        NULL,           /* vblank callback */
-        NULL,           /* hblank callback */
-        NULL,           /* get state (snss) */
-        NULL,           /* set state (snss) */
-        NULL,           /* memory read structure */
-        map70_memwrite, /* memory write structure */
-        NULL            /* external sound device */
+mapintf_t map70_intf = {
+    70,             /* mapper number */
+    "Mapper 70",    /* mapper name */
+    NULL,           /* init routine */
+    NULL,           /* vblank callback */
+    NULL,           /* hblank callback */
+    NULL,           /* get state (snss) */
+    NULL,           /* set state (snss) */
+    NULL,           /* memory read structure */
+    map70_memwrite, /* memory write structure */
+    NULL            /* external sound device */
 };
 
 /*

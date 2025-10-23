@@ -17,11 +17,11 @@
 #include "bsp/input.h"
 #include "esp_log.h"
 // #include "freertos/FreeRTOS.h"
+#include <pretty_effect.h>
+#include <stdio.h>
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include <pretty_effect.h>
-#include <stdio.h>
 
 static const char* TAG = "kbd controller";
 
@@ -149,26 +149,22 @@ int getBright() {
 }
 
 int incBright() {
-    if (bright < 13)
-        bright++;
+    if (bright < 13) bright++;
     return bright;
 }
 
 int decBright() {
-    if (bright > 3)
-        bright--;
+    if (bright > 3) bright--;
     return bright;
 }
 
 int incVolume() {
-    if (volume < 100)
-        volume += 5;
+    if (volume < 100) volume += 5;
     return volume;
 }
 
 int decVolume() {
-    if (volume > 0)
-        volume -= 5;
+    if (volume > 0) volume -= 5;
     return volume;
 }
 
@@ -180,46 +176,46 @@ int kbToControllerState(const bool keys_pressed[]) {
     // Start with no key pressed
     int b2b1 = 0xFFFF;
 
-    if (keys_pressed[0x48]) { // UP key code
+    if (keys_pressed[0x48]) {  // UP key code
 
         b2b1 -= PSX_UP;
     }
 
-    if (keys_pressed[0x50]) { // DOWN key code
+    if (keys_pressed[0x50]) {  // DOWN key code
 
         b2b1 -= PSX_DOWN;
     }
 
-    if (keys_pressed[0x4b]) { // LEFT key code
+    if (keys_pressed[0x4b]) {  // LEFT key code
 
         b2b1 -= PSX_LEFT;
     }
 
-    if (keys_pressed[0x4d]) { // RIGHT key code
+    if (keys_pressed[0x4d]) {  // RIGHT key code
 
         b2b1 -= PSX_RIGHT;
     }
     // extra keys to make playing platform games easier
     // Right shift is up + right
-    if (keys_pressed[0x36]) { // RIGHT SHIFT key code
+    if (keys_pressed[0x36]) {  // RIGHT SHIFT key code
         b2b1 &= ~(PSX_UP | PSX_RIGHT);
     }
     // The '/' key is up + lift
-    if (keys_pressed[0x35]) { // '/' key code
+    if (keys_pressed[0x35]) {  // '/' key code
         b2b1 &= ~(PSX_UP | PSX_LEFT);
     }
-    if (keys_pressed[0x2a] || keys_pressed[0x1d]) { // SHIFT key code CONTROLLER'A' button.
+    if (keys_pressed[0x2a] || keys_pressed[0x1d]) {  // SHIFT key code CONTROLLER'A' button.
 
         b2b1 -= A_BUTTON;
     }
-    if (keys_pressed[0x2c]) { // 'Z' key code CONTROLLER'B' button.
+    if (keys_pressed[0x2c]) {  // 'Z' key code CONTROLLER'B' button.
         b2b1 -= B_BUTTON;
     }
-    if (keys_pressed[0x3b]) { // 'F1' key code select button.
+    if (keys_pressed[0x3b]) {  // 'F1' key code select button.
         b2b1 -= PSX_SELECT;
     }
 
-    if (keys_pressed[0x3c]) { // 'F2' key code start button.
+    if (keys_pressed[0x3c]) {  // 'F2' key code start button.
         b2b1 -= PSX_START;
     }
 
@@ -235,15 +231,15 @@ int kbdReadInput() {
     while (xQueueReceive(input_event_queue, &event, pdMS_TO_TICKS(1))) {
         key_code = event.args_scancode.scancode;
         switch (event.type) {
-        case INPUT_EVENT_TYPE_SCANCODE: {
-            keys_pressed[key_code & 0x7f] = (key_code & 0x80) ? false : true;
-            if (key_code == 0x40) {
-                // Toggle show menu when the Purple diamond key is pressed (F6)
-                showMenu = !showMenu;
+            case INPUT_EVENT_TYPE_SCANCODE: {
+                keys_pressed[key_code & 0x7f] = (key_code & 0x80) ? false : true;
+                if (key_code == 0x40) {
+                    // Toggle show menu when the Purple diamond key is pressed (F6)
+                    showMenu = !showMenu;
+                }
             }
-        }
-        default:
-            break;
+            default:
+                break;
         }
     }
     return kbToControllerState(keys_pressed);

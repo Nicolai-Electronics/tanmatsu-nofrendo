@@ -64,20 +64,17 @@
 /* Stack is located on 6502 page 1 */
 #define STACK_OFFSET 0x0100
 
-typedef struct
-{
+typedef struct {
     uint32_t min_range, max_range;
     uint8_t (*read_func)(uint32_t address);
 } nes6502_memread;
 
-typedef struct
-{
+typedef struct {
     uint32_t min_range, max_range;
     int (*write_func)(uint32_t address, uint8_t value);
 } nes6502_memwrite;
 
-typedef struct
-{
+typedef struct {
     uint8_t* mem_page[NES6502_NUMBANKS]; /* memory page pointers */
 
     nes6502_memread*  read_handler;
@@ -96,23 +93,22 @@ typedef struct
 } nes6502_context;
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-    /* Functions which govern the 6502's execution */
-    extern void     nes6502_reset(void);
-    extern int      nes6502_execute(int total_cycles);
-    extern void     nes6502_nmi(void);
-    extern void     nes6502_irq(void);
-    extern uint8_t  nes6502_getbyte(uint32_t address);
-    extern uint32_t nes6502_getcycles(bool reset_flag);
-    extern void     nes6502_burn(int cycles);
-    extern void     nes6502_release(void);
+/* Functions which govern the 6502's execution */
+extern void     nes6502_reset(void);
+extern int      nes6502_execute(int total_cycles);
+extern void     nes6502_nmi(void);
+extern void     nes6502_irq(void);
+extern uint8_t  nes6502_getbyte(uint32_t address);
+extern uint32_t nes6502_getcycles(bool reset_flag);
+extern void     nes6502_burn(int cycles);
+extern void     nes6502_release(void);
 
-    /* Context get/set */
-    extern void nes6502_setcontext(nes6502_context* cpu);
-    extern void nes6502_getcontext(nes6502_context* cpu);
+/* Context get/set */
+extern void nes6502_setcontext(nes6502_context* cpu);
+extern void nes6502_getcontext(nes6502_context* cpu);
 
 #ifdef __cplusplus
 }

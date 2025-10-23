@@ -24,11 +24,11 @@
 */
 
 #include "log.h"
-#include "esp_log.h"
-#include "noftypes.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "esp_log.h"
+#include "noftypes.h"
 
 // static FILE *errorlog = NULL;
 static int (*log_func)(const char* string) = NULL;
@@ -55,8 +55,7 @@ void log_shutdown(void) {
 
 int log_print(const char* string) {
     /* if we have a custom logging function, use that */
-    if (NULL != log_func)
-        log_func(string);
+    if (NULL != log_func) log_func(string);
 
     /* Log it to disk, as well */
     //   fputs(string, errorlog);
@@ -115,8 +114,7 @@ void log_chain_logfunc(int (*func)(const char* string)) {
 }
 
 void log_assert(int expr, int line, const char* file, char* msg) {
-    if (expr)
-        return;
+    if (expr) return;
 
     if (NULL != msg)
         log_printf("ASSERT: line %d of %s, %s\n", line, file, msg);

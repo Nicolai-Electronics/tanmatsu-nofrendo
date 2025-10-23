@@ -73,8 +73,7 @@
 typedef void (*ppulatchfunc_t)(uint32_t address, uint8_t value);
 typedef void (*ppuvromswitch_t)(uint8_t value);
 
-typedef struct ppu_s
-{
+typedef struct ppu_s {
     /* big nasty memory chunks */
     uint8_t  nametab[0x1000];
     uint8_t  oam[256];

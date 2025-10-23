@@ -1,9 +1,9 @@
 #include "bsp/led.h"
+#include <stdint.h>
+#include <string.h>
 #include "esp_err.h"
 #include "esp_log.h"
 #include "led.h"
-#include <stdint.h>
-#include <string.h>
 
 #define NUMBER_OF_LEDS 6
 
@@ -38,9 +38,9 @@ void set_led_color(uint8_t led, uint32_t color) {
         return;
     }
 
-    led_buffer[led * 3 + 0] = (color >> 8) & 0xFF;  // G
-    led_buffer[led * 3 + 1] = (color >> 16) & 0xFF; // R
-    led_buffer[led * 3 + 2] = (color >> 0) & 0xFF;  // B
+    led_buffer[led * 3 + 0] = (color >> 8) & 0xFF;   // G
+    led_buffer[led * 3 + 1] = (color >> 16) & 0xFF;  // R
+    led_buffer[led * 3 + 2] = (color >> 0) & 0xFF;   // B
 }
 
 /**

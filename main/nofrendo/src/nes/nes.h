@@ -26,13 +26,13 @@
 #ifndef _NES_H_
 #define _NES_H_
 
-#include "nes_mmc.h"
-#include "nes_ppu.h"
-#include "nes_rom.h"
 #include <bitmap.h>
 #include <cpu/nes6502.h>
 #include <nes_apu.h>
 #include <noftypes.h>
+#include "nes_mmc.h"
+#include "nes_ppu.h"
+#include "nes_rom.h"
 
 /* Visible (NTSC) screen height */
 #ifndef NES_VISIBLE_HEIGHT
@@ -51,14 +51,12 @@
 
 #define MAX_MEM_HANDLERS 32
 
-enum
-{
+enum {
     SOFT_RESET,
     HARD_RESET
 };
 
-typedef struct nes_s
-{
+typedef struct nes_s {
     /* hardware things */
     nes6502_context* cpu;
     nes6502_memread  readhandler[MAX_MEM_HANDLERS];

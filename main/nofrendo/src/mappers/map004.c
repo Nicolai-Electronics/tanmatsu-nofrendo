@@ -28,8 +28,7 @@
 #include <nes_mmc.h>
 #include <noftypes.h>
 
-static struct
-{
+static struct {
     int  counter, latch;
     bool enabled, reset;
 } irq;
@@ -41,108 +40,106 @@ static uint16_t vrombase;
 /* mapper 4: MMC3 */
 static void map4_write(uint32_t address, uint8_t value) {
     switch (address & 0xE001) {
-    case 0x8000:
-        command  = value;
-        vrombase = (command & 0x80) ? 0x1000 : 0x0000;
+        case 0x8000:
+            command  = value;
+            vrombase = (command & 0x80) ? 0x1000 : 0x0000;
 
-        if (reg != (value & 0x40)) {
-            if (value & 0x40)
-                mmc_bankrom(8, 0x8000, (mmc_getinfo()->rom_banks * 2) - 2);
-            else
-                mmc_bankrom(8, 0xC000, (mmc_getinfo()->rom_banks * 2) - 2);
-        }
-        reg = value & 0x40;
-        break;
-
-    case 0x8001:
-        switch (command & 0x07) {
-        case 0:
-            value &= 0xFE;
-            mmc_bankvrom(1, vrombase ^ 0x0000, value);
-            mmc_bankvrom(1, vrombase ^ 0x0400, value + 1);
+            if (reg != (value & 0x40)) {
+                if (value & 0x40)
+                    mmc_bankrom(8, 0x8000, (mmc_getinfo()->rom_banks * 2) - 2);
+                else
+                    mmc_bankrom(8, 0xC000, (mmc_getinfo()->rom_banks * 2) - 2);
+            }
+            reg = value & 0x40;
             break;
 
-        case 1:
-            value &= 0xFE;
-            mmc_bankvrom(1, vrombase ^ 0x0800, value);
-            mmc_bankvrom(1, vrombase ^ 0x0C00, value + 1);
+        case 0x8001:
+            switch (command & 0x07) {
+                case 0:
+                    value &= 0xFE;
+                    mmc_bankvrom(1, vrombase ^ 0x0000, value);
+                    mmc_bankvrom(1, vrombase ^ 0x0400, value + 1);
+                    break;
+
+                case 1:
+                    value &= 0xFE;
+                    mmc_bankvrom(1, vrombase ^ 0x0800, value);
+                    mmc_bankvrom(1, vrombase ^ 0x0C00, value + 1);
+                    break;
+
+                case 2:
+                    mmc_bankvrom(1, vrombase ^ 0x1000, value);
+                    break;
+
+                case 3:
+                    mmc_bankvrom(1, vrombase ^ 0x1400, value);
+                    break;
+
+                case 4:
+                    mmc_bankvrom(1, vrombase ^ 0x1800, value);
+                    break;
+
+                case 5:
+                    mmc_bankvrom(1, vrombase ^ 0x1C00, value);
+                    break;
+
+                case 6:
+                    mmc_bankrom(8, (command & 0x40) ? 0xC000 : 0x8000, value);
+                    break;
+
+                case 7:
+                    mmc_bankrom(8, 0xA000, value);
+                    break;
+            }
             break;
 
-        case 2:
-            mmc_bankvrom(1, vrombase ^ 0x1000, value);
+        case 0xA000:
+            /* four screen mirroring crap */
+            if (0 == (mmc_getinfo()->flags & ROM_FLAG_FOURSCREEN)) {
+                if (value & 1)
+                    ppu_mirror(0, 0, 1, 1); /* horizontal */
+                else
+                    ppu_mirror(0, 1, 0, 1); /* vertical */
+            }
             break;
 
-        case 3:
-            mmc_bankvrom(1, vrombase ^ 0x1400, value);
+        case 0xA001:
+            /* Save RAM enable / disable */
+            /* Messes up Startropics I/II if implemented -- bah */
             break;
 
-        case 4:
-            mmc_bankvrom(1, vrombase ^ 0x1800, value);
+        case 0xC000:
+            irq.latch = value;
+            //      if (irq.reset)
+            //         irq.counter = irq.latch;
             break;
 
-        case 5:
-            mmc_bankvrom(1, vrombase ^ 0x1C00, value);
+        case 0xC001:
+            irq.reset   = true;
+            irq.counter = irq.latch;
             break;
 
-        case 6:
-            mmc_bankrom(8, (command & 0x40) ? 0xC000 : 0x8000, value);
+        case 0xE000:
+            irq.enabled = false;
+            //      if (irq.reset)
+            //         irq.counter = irq.latch;
             break;
 
-        case 7:
-            mmc_bankrom(8, 0xA000, value);
+        case 0xE001:
+            irq.enabled = true;
+            //      if (irq.reset)
+            //         irq.counter = irq.latch;
             break;
-        }
-        break;
 
-    case 0xA000:
-        /* four screen mirroring crap */
-        if (0 == (mmc_getinfo()->flags & ROM_FLAG_FOURSCREEN)) {
-            if (value & 1)
-                ppu_mirror(0, 0, 1, 1); /* horizontal */
-            else
-                ppu_mirror(0, 1, 0, 1); /* vertical */
-        }
-        break;
-
-    case 0xA001:
-        /* Save RAM enable / disable */
-        /* Messes up Startropics I/II if implemented -- bah */
-        break;
-
-    case 0xC000:
-        irq.latch = value;
-        //      if (irq.reset)
-        //         irq.counter = irq.latch;
-        break;
-
-    case 0xC001:
-        irq.reset   = true;
-        irq.counter = irq.latch;
-        break;
-
-    case 0xE000:
-        irq.enabled = false;
-        //      if (irq.reset)
-        //         irq.counter = irq.latch;
-        break;
-
-    case 0xE001:
-        irq.enabled = true;
-        //      if (irq.reset)
-        //         irq.counter = irq.latch;
-        break;
-
-    default:
-        break;
+        default:
+            break;
     }
 
-    if (true == irq.reset)
-        irq.counter = irq.latch;
+    if (true == irq.reset) irq.counter = irq.latch;
 }
 
 static void map4_hblank(int vblank) {
-    if (vblank)
-        return;
+    if (vblank) return;
 
     if (ppu_enabled()) {
         if (irq.counter >= 0) {
@@ -180,23 +177,19 @@ static void map4_init(void) {
     vrombase      = 0x0000;
 }
 
-static map_memwrite map4_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map4_write},
-        {-1, -1, NULL}};
+static map_memwrite map4_memwrite[] = {{0x8000, 0xFFFF, map4_write}, {-1, -1, NULL}};
 
-mapintf_t map4_intf =
-    {
-        4,             /* mapper number */
-        "MMC3",        /* mapper name */
-        map4_init,     /* init routine */
-        NULL,          /* vblank callback */
-        map4_hblank,   /* hblank callback */
-        map4_getstate, /* get state (snss) */
-        map4_setstate, /* set state (snss) */
-        NULL,          /* memory read structure */
-        map4_memwrite, /* memory write structure */
-        NULL           /* external sound device */
+mapintf_t map4_intf = {
+    4,             /* mapper number */
+    "MMC3",        /* mapper name */
+    map4_init,     /* init routine */
+    NULL,          /* vblank callback */
+    map4_hblank,   /* hblank callback */
+    map4_getstate, /* get state (snss) */
+    map4_setstate, /* set state (snss) */
+    NULL,          /* memory read structure */
+    map4_memwrite, /* memory write structure */
+    NULL           /* external sound device */
 };
 
 /*

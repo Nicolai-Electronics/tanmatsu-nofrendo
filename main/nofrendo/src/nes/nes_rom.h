@@ -29,8 +29,7 @@
 #include <osd.h>
 #include <unistd.h>
 
-typedef enum
-{
+typedef enum {
     MIRROR_HORIZ = 0,
     MIRROR_VERT  = 1
 } mirror_t;
@@ -40,8 +39,7 @@ typedef enum
 #define ROM_FLAG_FOURSCREEN 0x04
 #define ROM_FLAG_VERSUS     0x08
 
-typedef struct rominfo_s
-{
+typedef struct rominfo_s {
     /* pointers to ROM and VROM */
     uint8_t *rom, *vrom;
 

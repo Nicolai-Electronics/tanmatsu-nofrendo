@@ -73,23 +73,19 @@ static void map229_write(uint32_t address, uint8_t value) {
     return;
 }
 
-static map_memwrite map229_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map229_write},
-        {-1, -1, NULL}};
+static map_memwrite map229_memwrite[] = {{0x8000, 0xFFFF, map229_write}, {-1, -1, NULL}};
 
-mapintf_t map229_intf =
-    {
-        229,                 /* Mapper number */
-        "31 in 1 (bootleg)", /* Mapper name */
-        map229_init,         /* Initialization routine */
-        NULL,                /* VBlank callback */
-        NULL,                /* HBlank callback */
-        NULL,                /* Get state (SNSS) */
-        NULL,                /* Set state (SNSS) */
-        NULL,                /* Memory read structure */
-        map229_memwrite,     /* Memory write structure */
-        NULL                 /* External sound device */
+mapintf_t map229_intf = {
+    229,                 /* Mapper number */
+    "31 in 1 (bootleg)", /* Mapper name */
+    map229_init,         /* Initialization routine */
+    NULL,                /* VBlank callback */
+    NULL,                /* HBlank callback */
+    NULL,                /* Get state (SNSS) */
+    NULL,                /* Set state (SNSS) */
+    NULL,                /* Memory read structure */
+    map229_memwrite,     /* Memory write structure */
+    NULL                 /* External sound device */
 };
 
 /*

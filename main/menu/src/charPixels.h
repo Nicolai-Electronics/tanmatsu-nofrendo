@@ -8,5 +8,4 @@ void initRomList();
 
 int getCharPixel(int x, int y, int change, int choosen);
 
-
 void freeRL(void);

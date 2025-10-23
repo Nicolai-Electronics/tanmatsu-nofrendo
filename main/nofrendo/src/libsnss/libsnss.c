@@ -18,8 +18,7 @@
 /* This section deals with endian-specific code. */
 /**************************************************************************/
 
-static unsigned int
-swap32(unsigned int source) {
+static unsigned int swap32(unsigned int source) {
 #ifdef USE_LITTLE_ENDIAN
     char buffer[4];
 
@@ -34,8 +33,7 @@ swap32(unsigned int source) {
 #endif /* !USE_LITTLE_ENDIAN */
 }
 
-static unsigned short
-swap16(unsigned short source) {
+static unsigned short swap16(unsigned short source) {
 #ifdef USE_LITTLE_ENDIAN
     char buffer[2];
 
@@ -56,8 +54,7 @@ swap16(unsigned short source) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadBlockHeader(SnssBlockHeader* header, SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadBlockHeader(SnssBlockHeader* header, SNSS_FILE* snssFile) {
     char headerBytes[12];
 
     if (fread(headerBytes, 12, 1, snssFile->fp) != 1) {
@@ -76,8 +73,7 @@ SNSS_ReadBlockHeader(SnssBlockHeader* header, SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteBlockHeader(SnssBlockHeader* header, SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteBlockHeader(SnssBlockHeader* header, SNSS_FILE* snssFile) {
     char         headerBytes[12];
     unsigned int tempInt;
 
@@ -104,35 +100,34 @@ SNSS_WriteBlockHeader(SnssBlockHeader* header, SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-const char*
-SNSS_GetErrorString(SNSS_RETURN_CODE code) {
+const char* SNSS_GetErrorString(SNSS_RETURN_CODE code) {
     switch (code) {
-    case SNSS_OK:
-        return "no error";
+        case SNSS_OK:
+            return "no error";
 
-    case SNSS_BAD_FILE_TAG:
-        return "not an SNSS file";
+        case SNSS_BAD_FILE_TAG:
+            return "not an SNSS file";
 
-    case SNSS_OPEN_FAILED:
-        return "could not open SNSS file";
+        case SNSS_OPEN_FAILED:
+            return "could not open SNSS file";
 
-    case SNSS_CLOSE_FAILED:
-        return "could not close SNSS file";
+        case SNSS_CLOSE_FAILED:
+            return "could not close SNSS file";
 
-    case SNSS_READ_FAILED:
-        return "could not read from SNSS file";
+        case SNSS_READ_FAILED:
+            return "could not read from SNSS file";
 
-    case SNSS_WRITE_FAILED:
-        return "could not write to SNSS file";
+        case SNSS_WRITE_FAILED:
+            return "could not write to SNSS file";
 
-    case SNSS_OUT_OF_MEMORY:
-        return "out of memory";
+        case SNSS_OUT_OF_MEMORY:
+            return "out of memory";
 
-    case SNSS_UNSUPPORTED_BLOCK:
-        return "unsupported block type";
+        case SNSS_UNSUPPORTED_BLOCK:
+            return "unsupported block type";
 
-    default:
-        return "unknown error";
+        default:
+            return "unknown error";
     }
 }
 
@@ -140,8 +135,7 @@ SNSS_GetErrorString(SNSS_RETURN_CODE code) {
 /* functions for reading and writing SNSS file headers */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadFileHeader(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadFileHeader(SNSS_FILE* snssFile) {
     if (fread(snssFile->headerBlock.tag, 4, 1, snssFile->fp) != 1) {
         return SNSS_READ_FAILED;
     }
@@ -163,8 +157,7 @@ SNSS_ReadFileHeader(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteFileHeader(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteFileHeader(SNSS_FILE* snssFile) {
     unsigned int tempInt;
     char         writeBuffer[8];
 
@@ -319,8 +312,7 @@ SNSS_SkipNextBlock(SNSS_FILE* snssFile) {
 /* functions for reading and writing base register blocks */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadBaseBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadBaseBlock(SNSS_FILE* snssFile) {
     char            blockBytes[BASE_BLOCK_LENGTH];
     SnssBlockHeader header;
 
@@ -356,8 +348,7 @@ SNSS_ReadBaseBlock(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteBaseBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteBaseBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader  header;
     SNSS_RETURN_CODE returnCode;
     char             blockBytes[BASE_BLOCK_LENGTH];
@@ -405,8 +396,7 @@ SNSS_WriteBaseBlock(SNSS_FILE* snssFile) {
 /* functions for reading and writing VRAM blocks */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadVramBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadVramBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader header;
 
     if (SNSS_ReadBlockHeader(&header, snssFile) != SNSS_OK) {
@@ -424,8 +414,7 @@ SNSS_ReadVramBlock(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteVramBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteVramBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader  header;
     SNSS_RETURN_CODE returnCode;
 
@@ -450,8 +439,7 @@ SNSS_WriteVramBlock(SNSS_FILE* snssFile) {
 /* functions for reading and writing SRAM blocks */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadSramBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadSramBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader header;
 
     if (SNSS_ReadBlockHeader(&header, snssFile) != SNSS_OK) {
@@ -475,8 +463,7 @@ SNSS_ReadSramBlock(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteSramBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteSramBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader  header;
     SNSS_RETURN_CODE returnCode;
 
@@ -505,8 +492,7 @@ SNSS_WriteSramBlock(SNSS_FILE* snssFile) {
 /* functions for reading and writing mapper data blocks */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadMapperBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadMapperBlock(SNSS_FILE* snssFile) {
     char*           blockBytes;
     int             i;
     SnssBlockHeader header;
@@ -543,8 +529,7 @@ SNSS_ReadMapperBlock(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteMapperBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteMapperBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader  header;
     char             blockBytes[MAPPER_BLOCK_LENGTH];
     unsigned short   tempShort;
@@ -586,8 +571,7 @@ SNSS_WriteMapperBlock(SNSS_FILE* snssFile) {
 /* functions for reading and writing controller data blocks */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadControllersBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadControllersBlock(SNSS_FILE* snssFile) {
     /* quell warnings */
     snssFile = snssFile;
 
@@ -596,8 +580,7 @@ SNSS_ReadControllersBlock(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteControllersBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteControllersBlock(SNSS_FILE* snssFile) {
     /* quell warnings */
     snssFile = snssFile;
 
@@ -608,8 +591,7 @@ SNSS_WriteControllersBlock(SNSS_FILE* snssFile) {
 /* functions for reading and writing sound blocks */
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_ReadSoundBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_ReadSoundBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader header;
 
     if (SNSS_ReadBlockHeader(&header, snssFile) != SNSS_OK) {
@@ -625,8 +607,7 @@ SNSS_ReadSoundBlock(SNSS_FILE* snssFile) {
 
 /**************************************************************************/
 
-static SNSS_RETURN_CODE
-SNSS_WriteSoundBlock(SNSS_FILE* snssFile) {
+static SNSS_RETURN_CODE SNSS_WriteSoundBlock(SNSS_FILE* snssFile) {
     SnssBlockHeader  header;
     SNSS_RETURN_CODE returnCode;
 
@@ -654,27 +635,27 @@ SNSS_WriteSoundBlock(SNSS_FILE* snssFile) {
 SNSS_RETURN_CODE
 SNSS_ReadBlock(SNSS_FILE* snssFile, SNSS_BLOCK_TYPE blockType) {
     switch (blockType) {
-    case SNSS_BASR:
-        return SNSS_ReadBaseBlock(snssFile);
+        case SNSS_BASR:
+            return SNSS_ReadBaseBlock(snssFile);
 
-    case SNSS_VRAM:
-        return SNSS_ReadVramBlock(snssFile);
+        case SNSS_VRAM:
+            return SNSS_ReadVramBlock(snssFile);
 
-    case SNSS_SRAM:
-        return SNSS_ReadSramBlock(snssFile);
+        case SNSS_SRAM:
+            return SNSS_ReadSramBlock(snssFile);
 
-    case SNSS_MPRD:
-        return SNSS_ReadMapperBlock(snssFile);
+        case SNSS_MPRD:
+            return SNSS_ReadMapperBlock(snssFile);
 
-    case SNSS_CNTR:
-        return SNSS_ReadControllersBlock(snssFile);
+        case SNSS_CNTR:
+            return SNSS_ReadControllersBlock(snssFile);
 
-    case SNSS_SOUN:
-        return SNSS_ReadSoundBlock(snssFile);
+        case SNSS_SOUN:
+            return SNSS_ReadSoundBlock(snssFile);
 
-    case SNSS_UNKNOWN_BLOCK:
-    default:
-        return SNSS_UNSUPPORTED_BLOCK;
+        case SNSS_UNKNOWN_BLOCK:
+        default:
+            return SNSS_UNSUPPORTED_BLOCK;
     }
 }
 
@@ -683,27 +664,27 @@ SNSS_ReadBlock(SNSS_FILE* snssFile, SNSS_BLOCK_TYPE blockType) {
 SNSS_RETURN_CODE
 SNSS_WriteBlock(SNSS_FILE* snssFile, SNSS_BLOCK_TYPE blockType) {
     switch (blockType) {
-    case SNSS_BASR:
-        return SNSS_WriteBaseBlock(snssFile);
+        case SNSS_BASR:
+            return SNSS_WriteBaseBlock(snssFile);
 
-    case SNSS_VRAM:
-        return SNSS_WriteVramBlock(snssFile);
+        case SNSS_VRAM:
+            return SNSS_WriteVramBlock(snssFile);
 
-    case SNSS_SRAM:
-        return SNSS_WriteSramBlock(snssFile);
+        case SNSS_SRAM:
+            return SNSS_WriteSramBlock(snssFile);
 
-    case SNSS_MPRD:
-        return SNSS_WriteMapperBlock(snssFile);
+        case SNSS_MPRD:
+            return SNSS_WriteMapperBlock(snssFile);
 
-    case SNSS_CNTR:
-        return SNSS_WriteControllersBlock(snssFile);
+        case SNSS_CNTR:
+            return SNSS_WriteControllersBlock(snssFile);
 
-    case SNSS_SOUN:
-        return SNSS_WriteSoundBlock(snssFile);
+        case SNSS_SOUN:
+            return SNSS_WriteSoundBlock(snssFile);
 
-    case SNSS_UNKNOWN_BLOCK:
-    default:
-        return SNSS_UNSUPPORTED_BLOCK;
+        case SNSS_UNKNOWN_BLOCK:
+        default:
+            return SNSS_UNSUPPORTED_BLOCK;
     }
 }
 

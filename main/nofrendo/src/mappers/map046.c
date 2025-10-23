@@ -106,23 +106,19 @@ static void map46_getstate(SnssMapperBlock* state) {
     return;
 }
 
-static map_memwrite map46_memwrite[] =
-    {
-        {0x6000, 0xFFFF, map46_write},
-        {-1, -1, NULL}};
+static map_memwrite map46_memwrite[] = {{0x6000, 0xFFFF, map46_write}, {-1, -1, NULL}};
 
-mapintf_t map46_intf =
-    {
-        46,                     /* Mapper number */
-        "Pelican Game Station", /* Mapper name */
-        map46_init,             /* Initialization routine */
-        NULL,                   /* VBlank callback */
-        NULL,                   /* HBlank callback */
-        map46_getstate,         /* Get state (SNSS) */
-        map46_setstate,         /* Set state (SNSS) */
-        NULL,                   /* Memory read structure */
-        map46_memwrite,         /* Memory write structure */
-        NULL                    /* External sound device */
+mapintf_t map46_intf = {
+    46,                     /* Mapper number */
+    "Pelican Game Station", /* Mapper name */
+    map46_init,             /* Initialization routine */
+    NULL,                   /* VBlank callback */
+    NULL,                   /* HBlank callback */
+    map46_getstate,         /* Get state (SNSS) */
+    map46_setstate,         /* Set state (SNSS) */
+    NULL,                   /* Memory read structure */
+    map46_memwrite,         /* Memory write structure */
+    NULL                    /* External sound device */
 };
 
 /*

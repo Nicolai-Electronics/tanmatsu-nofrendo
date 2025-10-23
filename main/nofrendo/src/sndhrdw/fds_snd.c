@@ -58,9 +58,9 @@ static apu_memwrite fds_memwrite[] = {
     // {     -1,     -1, NULL }
 };
 
-apuext_t fds_ext = {NULL,                         /* no init */
-                    NULL,                         /* no shutdown */
-                    fds_reset, fds_process, NULL, /* no reads */
+apuext_t fds_ext = {NULL,                           /* no init */
+                    NULL,                           /* no shutdown */
+                    fds_reset,   fds_process, NULL, /* no reads */
                     fds_memwrite};
 
 /*

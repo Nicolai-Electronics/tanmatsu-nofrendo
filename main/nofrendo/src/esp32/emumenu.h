@@ -1,8 +1,8 @@
 #pragma once
 
-#include "bitmap.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "bitmap.h"
 
 // Render a whole menu frame to the bitmap
 void renderInGameMenuFrame(bitmap_t* fb, uint16_t x1, uint16_t y1);

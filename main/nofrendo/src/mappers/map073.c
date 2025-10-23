@@ -31,8 +31,7 @@
 #include <nes_mmc.h>
 #include <noftypes.h>
 
-static struct
-{
+static struct {
     bool     enabled;
     uint32_t counter;
 } irq;
@@ -82,32 +81,32 @@ static void map73_hblank(int vblank) {
 /******************************************/
 static void map73_write(uint32_t address, uint8_t value) {
     switch (address & 0xF000) {
-    case 0x8000:
-        irq.counter &= 0xFFF0;
-        irq.counter |= (uint32_t)(value);
-        break;
-    case 0x9000:
-        irq.counter &= 0xFF0F;
-        irq.counter |= (uint32_t)(value << 4);
-        break;
-    case 0xA000:
-        irq.counter &= 0xF0FF;
-        irq.counter |= (uint32_t)(value << 8);
-        break;
-    case 0xB000:
-        irq.counter &= 0x0FFF;
-        irq.counter |= (uint32_t)(value << 12);
-        break;
-    case 0xC000:
-        if (value & 0x02)
-            irq.enabled = true;
-        else
-            irq.enabled = false;
-        break;
-    case 0xF000:
-        mmc_bankrom(16, 0x8000, value);
-    default:
-        break;
+        case 0x8000:
+            irq.counter &= 0xFFF0;
+            irq.counter |= (uint32_t)(value);
+            break;
+        case 0x9000:
+            irq.counter &= 0xFF0F;
+            irq.counter |= (uint32_t)(value << 4);
+            break;
+        case 0xA000:
+            irq.counter &= 0xF0FF;
+            irq.counter |= (uint32_t)(value << 8);
+            break;
+        case 0xB000:
+            irq.counter &= 0x0FFF;
+            irq.counter |= (uint32_t)(value << 12);
+            break;
+        case 0xC000:
+            if (value & 0x02)
+                irq.enabled = true;
+            else
+                irq.enabled = false;
+            break;
+        case 0xF000:
+            mmc_bankrom(16, 0x8000, value);
+        default:
+            break;
     }
 
     /* Done */
@@ -136,23 +135,19 @@ static void map73_getstate(SnssMapperBlock* state) {
     return;
 }
 
-static map_memwrite map73_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map73_write},
-        {-1, -1, NULL}};
+static map_memwrite map73_memwrite[] = {{0x8000, 0xFFFF, map73_write}, {-1, -1, NULL}};
 
-mapintf_t map73_intf =
-    {
-        73,             /* Mapper number */
-        "Konami VRC3",  /* Mapper name */
-        map73_init,     /* Initialization routine */
-        NULL,           /* VBlank callback */
-        map73_hblank,   /* HBlank callback */
-        map73_getstate, /* Get state (SNSS) */
-        map73_setstate, /* Set state (SNSS) */
-        NULL,           /* Memory read structure */
-        map73_memwrite, /* Memory write structure */
-        NULL            /* External sound device */
+mapintf_t map73_intf = {
+    73,             /* Mapper number */
+    "Konami VRC3",  /* Mapper name */
+    map73_init,     /* Initialization routine */
+    NULL,           /* VBlank callback */
+    map73_hblank,   /* HBlank callback */
+    map73_getstate, /* Get state (SNSS) */
+    map73_setstate, /* Set state (SNSS) */
+    NULL,           /* Memory read structure */
+    map73_memwrite, /* Memory write structure */
+    NULL            /* External sound device */
 };
 
 /*

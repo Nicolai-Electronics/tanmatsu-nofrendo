@@ -23,7 +23,6 @@
 ** $Id: nesstate.c,v 1.2 2001/04/27 14:37:11 neil Exp $
 */
 
-#include "nes6502.h"
 #include <gui.h>
 #include <libsnss.h>
 #include <log.h>
@@ -33,6 +32,7 @@
 #include <osd.h>
 #include <stdio.h>
 #include <string.h>
+#include "nes6502.h"
 
 #define FIRST_STATE_SLOT 0
 #define LAST_STATE_SLOT  9
@@ -71,8 +71,7 @@ static int save_baseblock(nes_t* state, SNSS_FILE* snssFile) {
     memcpy(snssFile->baseBlock.ppuRam, state->ppu->nametab, 0x1000);
 
     /* Mask off priority color bits */
-    for (i = 0; i < 32; i++)
-        snssFile->baseBlock.palette[i] = state->ppu->palette[i] & 0x3F;
+    for (i = 0; i < 32; i++) snssFile->baseBlock.palette[i] = state->ppu->palette[i] & 0x3F;
 
     snssFile->baseBlock.mirrorState[0] = (state->ppu->page[8] + 0x2000 - state->ppu->nametab) / 0x400;
     snssFile->baseBlock.mirrorState[1] = (state->ppu->page[9] + 0x2400 - state->ppu->nametab) / 0x400;
@@ -89,8 +88,7 @@ static int save_baseblock(nes_t* state, SNSS_FILE* snssFile) {
 static bool save_vramblock(nes_t* state, SNSS_FILE* snssFile) {
     ASSERT(state);
 
-    if (NULL == state->rominfo->vram)
-        return -1;
+    if (NULL == state->rominfo->vram) return -1;
 
     if (state->rominfo->vram_banks > 2) {
         log_printf("too many VRAM banks: %d\n", state->rominfo->vram_banks);
@@ -120,8 +118,7 @@ static int save_sramblock(nes_t* state, SNSS_FILE* snssFile) {
         }
     }
 
-    if (false == written)
-        return -1;
+    if (false == written) return -1;
 
     if (state->rominfo->sram_banks > 8) {
         log_printf("Unsupported number of SRAM banks: %d\n", state->rominfo->sram_banks);
@@ -180,8 +177,7 @@ static int save_mapperblock(nes_t* state, SNSS_FILE* snssFile) {
 
     /* TODO: filthy hack in snss standard */
     /* We don't need to write mapper state for mapper 0 */
-    if (0 == state->mmc->intf->number)
-        return -1;
+    if (0 == state->mmc->intf->number) return -1;
 
     nes6502_getcontext(state->cpu);
 
@@ -194,12 +190,10 @@ static int save_mapperblock(nes_t* state, SNSS_FILE* snssFile) {
             snssFile->mapperBlock.chrPages[i] = (ppu_getpage(i) - state->rominfo->vrom + (i * 0x400)) >> 10;
     } else {
         /* bleh! slight hack */
-        for (i = 0; i < 8; i++)
-            snssFile->mapperBlock.chrPages[i] = i;
+        for (i = 0; i < 8; i++) snssFile->mapperBlock.chrPages[i] = i;
     }
 
-    if (state->mmc->intf->get_state)
-        state->mmc->intf->get_state(&snssFile->mapperBlock);
+    if (state->mmc->intf->get_state) state->mmc->intf->get_state(&snssFile->mapperBlock);
 
     return 0;
 }
@@ -228,8 +222,7 @@ static void load_baseblock(nes_t* state, SNSS_FILE* snssFile) {
     memcpy(state->ppu->palette, snssFile->baseBlock.palette, 0x20);
 
     /* TODO: argh, this is to handle nofrendo's filthy sprite priority method */
-    for (i = 0; i < 8; i++)
-        state->ppu->palette[i << 2] = state->ppu->palette[0] | 0x80; // BG_TRANS_MASK;
+    for (i = 0; i < 8; i++) state->ppu->palette[i << 2] = state->ppu->palette[0] | 0x80;  // BG_TRANS_MASK;
 
     for (i = 0; i < 4; i++) {
         state->ppu->page[i + 8] = state->ppu->page[i + 12] =
@@ -291,21 +284,17 @@ static void load_mapperblock(nes_t* state, SNSS_FILE* snssFile) {
 
     mmc_getcontext(state->mmc);
 
-    for (i = 0; i < 4; i++)
-        mmc_bankrom(8, 0x8000 + (i * 0x2000), snssFile->mapperBlock.prgPages[i]);
+    for (i = 0; i < 4; i++) mmc_bankrom(8, 0x8000 + (i * 0x2000), snssFile->mapperBlock.prgPages[i]);
 
     if (state->rominfo->vrom_banks) {
-        for (i = 0; i < 8; i++)
-            mmc_bankvrom(1, i * 0x400, snssFile->mapperBlock.chrPages[i]);
+        for (i = 0; i < 8; i++) mmc_bankvrom(1, i * 0x400, snssFile->mapperBlock.chrPages[i]);
     } else {
         ASSERT(state->rominfo->vram);
 
-        for (i = 0; i < 8; i++)
-            ppu_setpage(1, i, state->rominfo->vram);
+        for (i = 0; i < 8; i++) ppu_setpage(1, i, state->rominfo->vram);
     }
 
-    if (state->mmc->intf->set_state)
-        state->mmc->intf->set_state(&snssFile->mapperBlock);
+    if (state->mmc->intf->set_state) state->mmc->intf->set_state(&snssFile->mapperBlock);
 
     mmc_setcontext(state->mmc);
 }
@@ -329,44 +318,37 @@ int state_save(void) {
 
     /* open our state file for writing */
     status = SNSS_OpenFile(&snssFile, fn, SNSS_OPEN_WRITE);
-    if (SNSS_OK != status)
-        goto _error;
+    if (SNSS_OK != status) goto _error;
 
     /* now get all of our blocks */
     if (0 == save_baseblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_BASR);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
     }
 
     if (0 == save_vramblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_VRAM);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
     }
 
     if (0 == save_sramblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_SRAM);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
     }
 
     if (0 == save_soundblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_SOUN);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
     }
 
     if (0 == save_mapperblock(machine, snssFile)) {
         status = SNSS_WriteBlock(snssFile, SNSS_MPRD);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
     }
 
     /* close the file, we're done */
     status = SNSS_CloseFile(&snssFile);
-    if (SNSS_OK != status)
-        goto _error;
+    if (SNSS_OK != status) goto _error;
 
     gui_sendmsg(GUI_GREEN, "State %d saved", state_slot);
     return 0;
@@ -398,55 +380,51 @@ int state_load(void) {
 
     /* open our file for writing */
     status = SNSS_OpenFile(&snssFile, fn, SNSS_OPEN_READ);
-    if (SNSS_OK != status)
-        goto _error;
+    if (SNSS_OK != status) goto _error;
 
     /* iterate through all present blocks */
     for (i = 0; i < snssFile->headerBlock.numberOfBlocks; i++) {
         status = SNSS_GetNextBlockType(&block_type, snssFile);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
 
         status = SNSS_ReadBlock(snssFile, block_type);
-        if (SNSS_OK != status)
-            goto _error;
+        if (SNSS_OK != status) goto _error;
 
         switch (block_type) {
-        case SNSS_BASR:
-            load_baseblock(machine, snssFile);
-            break;
+            case SNSS_BASR:
+                load_baseblock(machine, snssFile);
+                break;
 
-        case SNSS_VRAM:
-            load_vramblock(machine, snssFile);
-            break;
+            case SNSS_VRAM:
+                load_vramblock(machine, snssFile);
+                break;
 
-        case SNSS_SRAM:
-            load_sramblock(machine, snssFile);
-            break;
+            case SNSS_SRAM:
+                load_sramblock(machine, snssFile);
+                break;
 
-        case SNSS_MPRD:
-            load_mapperblock(machine, snssFile);
-            break;
+            case SNSS_MPRD:
+                load_mapperblock(machine, snssFile);
+                break;
 
-        case SNSS_CNTR:
-            load_controllerblock(machine, snssFile);
-            break;
+            case SNSS_CNTR:
+                load_controllerblock(machine, snssFile);
+                break;
 
-        case SNSS_SOUN:
-            load_soundblock(machine, snssFile);
-            break;
+            case SNSS_SOUN:
+                load_soundblock(machine, snssFile);
+                break;
 
-        case SNSS_UNKNOWN_BLOCK:
-        default:
-            log_printf("unknown SNSS block type\n");
-            break;
+            case SNSS_UNKNOWN_BLOCK:
+            default:
+                log_printf("unknown SNSS block type\n");
+                break;
         }
     }
 
     /* close file, we're done */
     status = SNSS_CloseFile(&snssFile);
-    if (SNSS_OK != status)
-        goto _error;
+    if (SNSS_OK != status) goto _error;
 
     gui_sendmsg(GUI_GREEN, "State %d restored", state_slot);
 

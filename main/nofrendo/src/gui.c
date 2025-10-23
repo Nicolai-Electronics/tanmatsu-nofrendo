@@ -24,6 +24,9 @@
 */
 
 #include "gui.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 #include "bitmap.h"
 #include "gui_elem.h"
 #include "log.h"
@@ -34,28 +37,24 @@
 #include "osd.h"
 #include "sndhrdw/nes_apu.h"
 #include "vid_drv.h"
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
 
 /* TODO: oh god */
 /* 8-bit GUI color table */
-rgb_t gui_pal[GUI_TOTALCOLORS] =
-    {
-        {0x00, 0x00, 0x00}, /* black      */
-        {0x3F, 0x3F, 0x3F}, /* dark gray  */
-        {0x7F, 0x7F, 0x7F}, /* gray       */
-        {0xBF, 0xBF, 0xBF}, /* light gray */
-        {0xFF, 0xFF, 0xFF}, /* white      */
-        {0xFF, 0x00, 0x00}, /* red        */
-        {0x00, 0xFF, 0x00}, /* green      */
-        {0x00, 0x00, 0xFF}, /* blue       */
-        {0xFF, 0xFF, 0x00}, /* yellow     */
-        {0xFF, 0xAF, 0x00}, /* orange     */
-        {0xFF, 0x00, 0xFF}, /* purple     */
-        {0x3F, 0x7F, 0x7F}, /* teal       */
-        {0x00, 0x2A, 0x00}, /* dk. green  */
-        {0x00, 0x00, 0x3F}  /* dark blue  */
+rgb_t gui_pal[GUI_TOTALCOLORS] = {
+    {0x00, 0x00, 0x00}, /* black      */
+    {0x3F, 0x3F, 0x3F}, /* dark gray  */
+    {0x7F, 0x7F, 0x7F}, /* gray       */
+    {0xBF, 0xBF, 0xBF}, /* light gray */
+    {0xFF, 0xFF, 0xFF}, /* white      */
+    {0xFF, 0x00, 0x00}, /* red        */
+    {0x00, 0xFF, 0x00}, /* green      */
+    {0x00, 0x00, 0xFF}, /* blue       */
+    {0xFF, 0xFF, 0x00}, /* yellow     */
+    {0xFF, 0xAF, 0x00}, /* orange     */
+    {0xFF, 0x00, 0xFF}, /* purple     */
+    {0x3F, 0x7F, 0x7F}, /* teal       */
+    {0x00, 0x2A, 0x00}, /* dk. green  */
+    {0x00, 0x00, 0x3F}  /* dark blue  */
 };
 
 /**************************************************************/
@@ -68,11 +67,9 @@ void gui_savesnap(void) {
     char   filename[PATH_MAX];
     nes_t* nes = nes_getcontextptr();
 
-    if (osd_makesnapname(filename, PATH_MAX) < 0)
-        return;
+    if (osd_makesnapname(filename, PATH_MAX) < 0) return;
 
-    if (pcx_write(filename, vid_getbuffer(), nes->ppu->curpal))
-        return;
+    if (pcx_write(filename, vid_getbuffer(), nes->ppu->curpal)) return;
 
     gui_sendmsg(GUI_GREEN, "Screen saved to %s", filename);
 }
@@ -108,12 +105,9 @@ void gui_toggle_chan(int chan) {
     chan_enabled[chan] ^= true;
     apu_setchan(chan, chan_enabled[chan]);
 
-    gui_sendmsg(GUI_ORANGE, "%ca %cb %cc %cd %ce %cext",
-                chan_enabled[0] ? FILL_CHAR : BLANK_CHAR,
-                chan_enabled[1] ? FILL_CHAR : BLANK_CHAR,
-                chan_enabled[2] ? FILL_CHAR : BLANK_CHAR,
-                chan_enabled[3] ? FILL_CHAR : BLANK_CHAR,
-                chan_enabled[4] ? FILL_CHAR : BLANK_CHAR,
+    gui_sendmsg(GUI_ORANGE, "%ca %cb %cc %cd %ce %cext", chan_enabled[0] ? FILL_CHAR : BLANK_CHAR,
+                chan_enabled[1] ? FILL_CHAR : BLANK_CHAR, chan_enabled[2] ? FILL_CHAR : BLANK_CHAR,
+                chan_enabled[3] ? FILL_CHAR : BLANK_CHAR, chan_enabled[4] ? FILL_CHAR : BLANK_CHAR,
                 chan_enabled[5] ? FILL_CHAR : BLANK_CHAR);
 }
 
@@ -121,8 +115,7 @@ void gui_setfilter(int filter_type) {
     char*      types[3]    = {"no", "lowpass", "weighted"};
     static int last_filter = 2;
 
-    if (last_filter == filter_type || filter_type < 0 || filter_type > 2)
-        return;
+    if (last_filter == filter_type || filter_type < 0 || filter_type > 2) return;
 
     apu_setfilter(filter_type);
     gui_sendmsg(GUI_ORANGE, "%s filter", types[filter_type]);
@@ -168,13 +161,11 @@ INLINE void gui_putpixel(int x_pos, int y_pos, uint8_t color) {
 
 /* Line drawing */
 static void gui_hline(int x_pos, int y_pos, int length, uint8_t color) {
-    while (length--)
-        gui_putpixel(x_pos++, y_pos, color);
+    while (length--) gui_putpixel(x_pos++, y_pos, color);
 }
 
 static void gui_vline(int x_pos, int y_pos, int height, uint8_t color) {
-    while (height--)
-        gui_putpixel(x_pos, y_pos++, color);
+    while (height--) gui_putpixel(x_pos, y_pos++, color);
 }
 
 /* Rectangles */
@@ -186,8 +177,7 @@ static void gui_rect(int x_pos, int y_pos, int width, int height, uint8_t color)
 }
 
 static void gui_rectfill(int x_pos, int y_pos, int width, int height, uint8_t color) {
-    while (height--)
-        gui_hline(x_pos, y_pos++, width, color);
+    while (height--) gui_hline(x_pos, y_pos++, width, color);
 }
 
 /* Draw the outline of a button */
@@ -212,15 +202,13 @@ static void gui_buttonrect(int x_pos, int y_pos, int width, int height, bool dow
 INLINE void gui_charline(char ch, int x_pos, int y_pos, uint8_t color) {
     int count = 8;
     while (count--) {
-        if (ch & (1 << count))
-            gui_putpixel(x_pos, y_pos, color);
+        if (ch & (1 << count)) gui_putpixel(x_pos, y_pos, color);
         x_pos++;
     }
 }
 
 static void gui_putchar(const uint8_t* dat, int height, int x_pos, int y_pos, uint8_t color) {
-    while (height--)
-        gui_charline(*dat++, x_pos, y_pos++, color);
+    while (height--) gui_charline(*dat++, x_pos, y_pos++, color);
 }
 
 /* Return length of text in pixels */
@@ -228,8 +216,7 @@ static int gui_textlen(char* str, font_t* font) {
     int pixels    = 0;
     int num_chars = strlen(str);
 
-    while (num_chars--)
-        pixels += font->character[(*str++ - 32)].spacing;
+    while (num_chars--) pixels += font->character[(*str++ - 32)].spacing;
 
     return pixels;
 }
@@ -245,8 +232,7 @@ static int gui_textout(char* str, int x_pos, int y_pos, font_t* font, uint8_t co
     while (num_chars--) {
         /* Turn ASCII code into letter */
         code = *str++;
-        if (code > 0x7F)
-            code = 0x7F;
+        if (code > 0x7F) code = 0x7F;
         code -= 32; /* normalize */
         gui_putchar(font->character[code].lines, font->height, x_new, y_pos, color);
         x_new += font->character[code].spacing;
@@ -257,8 +243,8 @@ static int gui_textout(char* str, int x_pos, int y_pos, font_t* font, uint8_t co
 }
 
 /* Draw bar-/button-type text */
-static int gui_textbar(char* str, int x_pos, int y_pos, font_t* font,
-                       uint8_t color, uint8_t bgcolor, bool buttonstate) {
+static int gui_textbar(char* str, int x_pos, int y_pos, font_t* font, uint8_t color, uint8_t bgcolor,
+                       bool buttonstate) {
     int width = gui_textlen(str, &small);
 
     /* Fill the 'button' */
@@ -276,18 +262,15 @@ static void gui_drawmouse(void) {
 
     ythresh = gui_surface->height - mouse_y - 1;
     for (j = 0; j < CURSOR_HEIGHT; j++) {
-        if (ythresh < 0)
-            continue;
+        if (ythresh < 0) continue;
 
         xthresh = gui_surface->width - mouse_x - 1;
         for (i = 0; i < CURSOR_WIDTH; i++) {
-            if (xthresh < 0)
-                continue;
+            if (xthresh < 0) continue;
 
             color = cursor[(j * CURSOR_WIDTH) + i];
 
-            if (color)
-                gui_putpixel(mouse_x + i, mouse_y + j, cursor_color[color]);
+            if (color) gui_putpixel(mouse_x + i, mouse_y + j, cursor_color[color]);
             xthresh--;
         }
         ythresh--;
@@ -314,8 +297,7 @@ static void gui_tickdec(void) {
 #endif
     int ticks = gui_ticks;
 
-    if (0 == ticks)
-        return;
+    if (0 == ticks) return;
 
     gui_ticks = 0;
 
@@ -331,8 +313,7 @@ static void gui_tickdec(void) {
     /* TODO: bleh */
     if (msg.ttl > 0) {
         msg.ttl -= ticks;
-        if (msg.ttl < 0)
-            msg.ttl = 0;
+        if (msg.ttl < 0) msg.ttl = 0;
     }
 }
 
@@ -375,20 +356,17 @@ void gui_togglepattern(void) {
 
 /* TODO: hack! */
 void gui_decpatterncol(void) {
-    if (pattern_col && option_showpattern)
-        pattern_col--;
+    if (pattern_col && option_showpattern) pattern_col--;
 }
 
 /* TODO: hack! */
 void gui_incpatterncol(void) {
-    if ((pattern_col < 7) && option_showpattern)
-        pattern_col++;
+    if ((pattern_col < 7) && option_showpattern) pattern_col++;
 }
 
 /* Downward-scrolling message display */
 static void gui_updatemsg(void) {
-    if (msg.ttl)
-        gui_textbar(msg.text, 2, gui_surface->height - 10, &small, msg.color, GUI_DKGRAY, BUTTON_UP);
+    if (msg.ttl) gui_textbar(msg.text, 2, gui_surface->height - 10, &small, msg.color, GUI_DKGRAY, BUTTON_UP);
 }
 
 /* Little thing to display the waveform */
@@ -458,8 +436,7 @@ static void gui_updatewave(int wave_type) {
             else if (val < 0x20)
                 gui_vline(xofs + loop, yofs + 0x20, 0x20 - val, GUI_GREEN);
             else
-                gui_vline(xofs + loop, yofs + 0x20 - (val - 0x20), val - 0x20,
-                          GUI_GREEN);
+                gui_vline(xofs + loop, yofs + 0x20 - (val - 0x20), val - 0x20, GUI_GREEN);
         }
     }
 
@@ -489,8 +466,7 @@ static void gui_updateoam(void) {
 /* The GUI overlay */
 void gui_frame(bool draw) {
     gui_fps++;
-    if (false == draw)
-        return;
+    if (false == draw) return;
 
     gui_surface = vid_getbuffer();
 
@@ -498,20 +474,15 @@ void gui_frame(bool draw) {
 
     gui_tickdec();
 
-    if (option_showfps)
-        gui_updatefps();
+    if (option_showfps) gui_updatefps();
 
-    if (option_wavetype != GUI_WAVENONE)
-        gui_updatewave(option_wavetype);
+    if (option_wavetype != GUI_WAVENONE) gui_updatewave(option_wavetype);
 
-    if (option_showpattern)
-        gui_updatepattern();
+    if (option_showpattern) gui_updatepattern();
 
-    if (option_showoam)
-        gui_updateoam();
+    if (option_showoam) gui_updateoam();
 
-    if (msg.ttl)
-        gui_updatemsg();
+    if (msg.ttl) gui_updatemsg();
 
     if (option_showgui) {
         osd_getmouse(&mouse_x, &mouse_y, &mouse_button);

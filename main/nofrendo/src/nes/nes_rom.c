@@ -25,11 +25,6 @@
 
 /* TODO: make this a generic ROM loading routine */
 
-#include "esp_log.h"
-#include "nes.h"
-#include "nes_mmc.h"
-#include "nes_ppu.h"
-#include "osd.h"
 #include <gui.h>
 #include <intro.h>
 #include <log.h>
@@ -37,6 +32,11 @@
 #include <noftypes.h>
 #include <stdio.h>
 #include <string.h>
+#include "esp_log.h"
+#include "nes.h"
+#include "nes_mmc.h"
+#include "nes_ppu.h"
+#include "osd.h"
 
 extern char* osd_getromdata();
 
@@ -229,8 +229,7 @@ static FILE* rom_findrom(const char* filename, rominfo_t* rominfo) {
 
     ASSERT(rominfo);
 
-    if (NULL == filename)
-        return NULL;
+    if (NULL == filename) return NULL;
 
     /* Make a copy of the name so we can extend it */
     osd_fullname(rominfo->filename, filename);
@@ -256,8 +255,7 @@ static int rom_adddirty(char* filename) {
     bool found = false;
 
     FILE* fp = fopen("dirtyrom.txt", "rt");
-    if (NULL == fp)
-        return -1;
+    if (NULL == fp) return -1;
 
     while (fgets(buffer, MAX_BUFFER_LENGTH, fp)) {
         if (0 == strncmp(filename, buffer, strlen(filename))) {
@@ -286,8 +284,7 @@ int rom_checkmagic(const char* filename) {
     FILE*        fp;
 
     fp = rom_findrom(filename, &rominfo);
-    if (NULL == fp)
-        return -1;
+    if (NULL == fp) return -1;
 
     _fread(&head, 1, sizeof(head), fp);
 
@@ -327,12 +324,9 @@ static int rom_getheader(unsigned char** rom, rominfo_t* rominfo) {
     rominfo->vram_banks = 1; /* 8kB banks, so 8KB */
     rominfo->mirror     = (head.rom_type & ROM_MIRRORTYPE) ? MIRROR_VERT : MIRROR_HORIZ;
     rominfo->flags      = 0;
-    if (head.rom_type & ROM_BATTERY)
-        rominfo->flags |= ROM_FLAG_BATTERY;
-    if (head.rom_type & ROM_TRAINER)
-        rominfo->flags |= ROM_FLAG_TRAINER;
-    if (head.rom_type & ROM_FOURSCREEN)
-        rominfo->flags |= ROM_FLAG_FOURSCREEN;
+    if (head.rom_type & ROM_BATTERY) rominfo->flags |= ROM_FLAG_BATTERY;
+    if (head.rom_type & ROM_TRAINER) rominfo->flags |= ROM_FLAG_TRAINER;
+    if (head.rom_type & ROM_FOURSCREEN) rominfo->flags |= ROM_FLAG_FOURSCREEN;
     /* TODO: fourscreen a mirroring type? */
     rominfo->mapper_number = head.rom_type >> 4;
 
@@ -358,8 +352,7 @@ static int rom_getheader(unsigned char** rom, rominfo_t* rominfo) {
 
     /* TODO: this is an ugly hack, but necessary, I guess */
     /* Check for VS unisystem mapper */
-    if (99 == rominfo->mapper_number)
-        rominfo->flags |= ROM_FLAG_VERSUS;
+    if (99 == rominfo->mapper_number) rominfo->flags |= ROM_FLAG_VERSUS;
 
     return 0;
 }
@@ -390,12 +383,9 @@ char* rom_getinfo(rominfo_t* rominfo) {
     /* Stick it on there! */
     strncat(info, temp, PATH_MAX - strlen(info));
 
-    if (rominfo->flags & ROM_FLAG_BATTERY)
-        strncat(info, "B", PATH_MAX - strlen(info));
-    if (rominfo->flags & ROM_FLAG_TRAINER)
-        strncat(info, "T", PATH_MAX - strlen(info));
-    if (rominfo->flags & ROM_FLAG_FOURSCREEN)
-        strncat(info, "4", PATH_MAX - strlen(info));
+    if (rominfo->flags & ROM_FLAG_BATTERY) strncat(info, "B", PATH_MAX - strlen(info));
+    if (rominfo->flags & ROM_FLAG_TRAINER) strncat(info, "T", PATH_MAX - strlen(info));
+    if (rominfo->flags & ROM_FLAG_FOURSCREEN) strncat(info, "4", PATH_MAX - strlen(info));
 
     return info;
 }
@@ -408,16 +398,14 @@ rominfo_t* rom_load(const char* filename) {
     }
 
     rominfo_t* rominfo = malloc(sizeof(rominfo_t));
-    if (NULL == rominfo)
-        return NULL;
+    if (NULL == rominfo) return NULL;
 
     memset(rominfo, 0, sizeof(rominfo_t));
 
     memcpy(rominfo->filename, filename, strlen(filename) + 1);
 
     /* Get the header and stick it into rominfo struct */
-    if (rom_getheader(&rom, rominfo))
-        goto _fail;
+    if (rom_getheader(&rom, rominfo)) goto _fail;
 
     /* Make sure we really support the mapper */
     if (false == mmc_peek(rominfo->mapper_number)) {
@@ -429,13 +417,11 @@ rominfo_t* rom_load(const char* filename) {
     ** we have to always allocate it -- bleh!
     ** UNIF, TAKE ME AWAY!  AAAAAAAAAA!!!
     */
-    if (rom_allocsram(rominfo))
-        goto _fail;
+    if (rom_allocsram(rominfo)) goto _fail;
 
     rom_loadtrainer(&rom, rominfo);
 
-    if (rom_loadrom(&rom, rominfo))
-        goto _fail;
+    if (rom_loadrom(&rom, rominfo)) goto _fail;
 
     rom_loadsram(rominfo);
 
@@ -468,14 +454,10 @@ void rom_free(rominfo_t** rominfo) {
 
     rom_savesram(*rominfo);
 
-    if ((*rominfo)->sram)
-        free((*rominfo)->sram);
-    if ((*rominfo)->rom)
-        free((*rominfo)->rom);
-    if ((*rominfo)->vrom)
-        free((*rominfo)->vrom);
-    if ((*rominfo)->vram)
-        free((*rominfo)->vram);
+    if ((*rominfo)->sram) free((*rominfo)->sram);
+    if ((*rominfo)->rom) free((*rominfo)->rom);
+    if ((*rominfo)->vrom) free((*rominfo)->vrom);
+    if ((*rominfo)->vram) free((*rominfo)->vram);
 
     free(*rominfo);
 

@@ -39,18 +39,17 @@ static void map99_init(void) {
     ppu_setvromswitch(map99_vromswitch);
 }
 
-mapintf_t map99_intf =
-    {
-        99,           /* mapper number */
-        "VS. System", /* mapper name */
-        map99_init,   /* init routine */
-        NULL,         /* vblank callback */
-        NULL,         /* hblank callback */
-        NULL,         /* get state (snss) */
-        NULL,         /* set state (snss) */
-        NULL,         /* memory read structure */
-        NULL,         /* memory write structure */
-        NULL          /* external sound device */
+mapintf_t map99_intf = {
+    99,           /* mapper number */
+    "VS. System", /* mapper name */
+    map99_init,   /* init routine */
+    NULL,         /* vblank callback */
+    NULL,         /* hblank callback */
+    NULL,         /* get state (snss) */
+    NULL,         /* set state (snss) */
+    NULL,         /* memory read structure */
+    NULL,         /* memory write structure */
+    NULL          /* external sound device */
 };
 
 /*

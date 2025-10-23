@@ -6,10 +6,10 @@
 // #include "freertos/FreeRTOS.h"
 // #include "nvs_flash.h"
 #include <charPixels.h>
-#include <iconData.c>
 #include <menu.h>
 #include <pretty_effect.h>
 #include <string.h>
+#include <iconData.c>
 // #include "esp_event_loop.h"
 
 static const char* TAG = "rom_list";
@@ -50,7 +50,7 @@ void initRomList() {
     }
     menuEntries = (MenuEntry*)malloc(entryCount * sizeof(MenuEntry));
     rewind(romsFile);
-    fgets(line, 64, romsFile); // Skip first line
+    fgets(line, 64, romsFile);  // Skip first line
     for (int i = 0; i < entryCount; i++) {
         menuEntries[i].entryNumber = -1;
         menuEntries[i].icon        = 'E';
@@ -92,8 +92,7 @@ int getCharPixel(int x, int y, int change, int choosen) {
     if (actChar < ' ') {
         return 0x0000;
     }
-    if (getPixel(actChar, (x - 26) % 16, (y - 3) % 18) == 1)
-        return 0xFFFF;
+    if (getPixel(actChar, (x - 26) % 16, (y - 3) % 18) == 1) return 0xFFFF;
     return 0x0000;
 }
 

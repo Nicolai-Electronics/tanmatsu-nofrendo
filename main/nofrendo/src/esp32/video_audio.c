@@ -12,19 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "bsp/audio.h"
-#include "bsp/display.h"
-#include "driver/i2s_common.h"
-#include "driver/i2s_std.h"
-#include "driver/i2s_types.h"
-#include "esp_attr.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "hal/lcd_types.h"
-#include "mipi_gfx.h"
-#include "sdkconfig.h"
-#include "soc/timer_group_reg.h"
-#include "soc/timer_group_struct.h"
 #include <bitmap.h>
 #include <event.h>
 #include <freertos/FreeRTOS.h>
@@ -45,6 +32,19 @@
 #include <sndhrdw/nes_apu.h>
 #include <stdint.h>
 #include <string.h>
+#include "bsp/audio.h"
+#include "bsp/display.h"
+#include "driver/i2s_common.h"
+#include "driver/i2s_std.h"
+#include "driver/i2s_types.h"
+#include "esp_attr.h"
+#include "esp_err.h"
+#include "esp_log.h"
+#include "hal/lcd_types.h"
+#include "mipi_gfx.h"
+#include "sdkconfig.h"
+#include "soc/timer_group_reg.h"
+#include "soc/timer_group_struct.h"
 
 #define AUDIO_SAMPLERATE    22050
 #define AUDIO_BUFFER_LENGTH 64
@@ -53,8 +53,8 @@
 #define BYTES_PER_SAMPLE    2
 #define I2S_DEVICE_ID       0
 
-#define DEFAULT_WIDTH  320 // 256
-#define DEFAULT_HEIGHT 240 // NES_VISIBLE_HEIGHT
+#define DEFAULT_WIDTH  320  // 256
+#define DEFAULT_HEIGHT 240  // NES_VISIBLE_HEIGHT
 
 static const char* TAG = "video_audio";
 
@@ -86,8 +86,7 @@ static void*  audio_buffer;
 // Union for left and right audio channel to uint32_t
 union MonoToStereo {
     uint32_t val;
-    struct
-    {
+    struct {
         int16_t l;
         int16_t r;
     };
@@ -104,7 +103,7 @@ static void do_audio_frame() {
     int                       samplesRemaining = samplesPerPlayback;
     static uint16_t           swapped;
     static uint32_t           stereo_sample;
-    static uint8_t            i2s_stereo_out[AUDIO_BUFFER_LENGTH * 2 * 2]; // 16-bit stereo data
+    static uint8_t            i2s_stereo_out[AUDIO_BUFFER_LENGTH * 2 * 2];  // 16-bit stereo data
     static size_t             written = -1;
     static union MonoToStereo stereo;
 
@@ -183,7 +182,7 @@ static int osd_init_sound(void) {
 
 void osd_getsoundinfo(sndinfo_t* info) {
     info->sample_rate = AUDIO_SAMPLERATE;
-    info->bps         = BITS_PER_SAMPLE; // Internal DAC is only 8-bit anyway
+    info->bps         = BITS_PER_SAMPLE;  // Internal DAC is only 8-bit anyway
 }
 
 /*
@@ -198,7 +197,7 @@ static void      clear(uint8_t color);
 static bitmap_t* lock_write(void);
 static void      free_write(int num_dirties, rect_t* dirty_rects);
 static void      custom_blit(bitmap_t* bmp, int num_dirties, rect_t* dirty_rects);
-static char      fb[1]; // dummy
+static char      fb[1];  // dummy
 
 // Used to synchronize the PPA blit with the main loop
 QueueHandle_t vidQueue;
@@ -221,11 +220,8 @@ bitmap_t* myBitmap;
 void osd_getvideoinfo(vidinfo_t* info) {
     lcd_color_rgb_pixel_format_t color_fmt;
     lcd_rgb_data_endian_t        display_data_endian;
-    esp_err_t                    res = bsp_display_get_parameters(
-        &info->default_width,
-        &info->default_height,
-        &color_fmt,
-        &display_data_endian);
+    esp_err_t                    res =
+        bsp_display_get_parameters(&info->default_width, &info->default_height, &color_fmt, &display_data_endian);
     if (res != ESP_OK) {
         printf("Failed to get display parameters: %d\n", res);
         exit(1);
@@ -275,8 +271,8 @@ static void clear(uint8_t color) {
 /* acquire the directbuffer for writing */
 static bitmap_t* lock_write(void) {
     //   SDL_LockSurface(mySurface);
-    myBitmap = bmp_createhw((uint8_t*)fb, xWidth, yHight, xWidth * 2); // DEFAULT_WIDTH, DEFAULT_HEIGHT,
-                                                                       // DEFAULT_WIDTH*2);
+    myBitmap = bmp_createhw((uint8_t*)fb, xWidth, yHight, xWidth * 2);  // DEFAULT_WIDTH, DEFAULT_HEIGHT,
+                                                                        // DEFAULT_WIDTH*2);
     return myBitmap;
 }
 
@@ -382,8 +378,7 @@ static int logprint(const char* string) {
 int osd_init() {
     log_chain_logfunc(logprint);
 
-    if (osd_init_sound())
-        return -1;
+    if (osd_init_sound()) return -1;
     printf("free heap after sound init: %d\n", xPortGetFreeHeapSize());
     mipi_init();
     mipi_write_frame(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT, NULL, false, false);

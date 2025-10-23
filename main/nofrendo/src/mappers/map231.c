@@ -43,23 +43,19 @@ static void map231_write(uint32_t address, uint8_t value) {
     mmc_bankvrom(8, 0x0000, vbank);
 }
 
-static map_memwrite map231_memwrite[] =
-    {
-        {0x8000, 0xFFFF, map231_write},
-        {-1, -1, NULL}};
+static map_memwrite map231_memwrite[] = {{0x8000, 0xFFFF, map231_write}, {-1, -1, NULL}};
 
-mapintf_t map231_intf =
-    {
-        231,             /* mapper number */
-        "NINA-07",       /* mapper name */
-        map231_init,     /* init routine */
-        NULL,            /* vblank callback */
-        NULL,            /* hblank callback */
-        NULL,            /* get state (snss) */
-        NULL,            /* set state (snss) */
-        NULL,            /* memory read structure */
-        map231_memwrite, /* memory write structure */
-        NULL             /* external sound device */
+mapintf_t map231_intf = {
+    231,             /* mapper number */
+    "NINA-07",       /* mapper name */
+    map231_init,     /* init routine */
+    NULL,            /* vblank callback */
+    NULL,            /* hblank callback */
+    NULL,            /* get state (snss) */
+    NULL,            /* set state (snss) */
+    NULL,            /* memory read structure */
+    map231_memwrite, /* memory write structure */
+    NULL             /* external sound device */
 };
 
 /*

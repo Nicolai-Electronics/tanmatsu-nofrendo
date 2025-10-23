@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
@@ -19,7 +20,6 @@
 #include "pretty_effect.h"
 #include "sdkconfig.h"
 #include "soc/gpio_struct.h"
-#include <stdio.h>
 
 #define PSX_CLK CONFIG_HW_PSX_CLK
 #define PSX_DAT CONFIG_HW_PSX_DAT
@@ -50,8 +50,7 @@ static int psxSendRecv(int send) {
 #endif
 
     GPIO.out_w1tc = (1 << PSX_ATT);
-    for (delay = 0; delay < 100; delay++)
-        ;
+    for (delay = 0; delay < 100; delay++);
     for (x = 0; x < 8; x++) {
         if (send & 1) {
             GPIO.out_w1ts = (1 << PSX_CMD);
@@ -59,16 +58,13 @@ static int psxSendRecv(int send) {
             GPIO.out_w1tc = (1 << PSX_CMD);
         }
         DELAY();
-        for (delay = 0; delay < 100; delay++)
-            ;
+        for (delay = 0; delay < 100; delay++);
         GPIO.out_w1tc = (1 << PSX_CLK);
-        for (delay = 0; delay < 100; delay++)
-            ;
+        for (delay = 0; delay < 100; delay++);
         GPIO.out_w1ts   = (1 << PSX_CLK);
         ret           >>= 1;
         send          >>= 1;
-        if (GPIO.in & (1 << PSX_DAT))
-            ret |= 128;
+        if (GPIO.in & (1 << PSX_DAT)) ret |= 128;
     }
     return ret;
 }
@@ -181,42 +177,29 @@ int getTurboB() {
 
 int psxReadInput() {
     int b2b1 = 65535;
-    if (inpDelay > 0)
-        inpDelay--;
+    if (inpDelay > 0) inpDelay--;
 #ifndef CONFIG_HW_CONTROLLER_GPIO
     int b1, b2;
-    psxSendRecv(0x01);      // wake up
-    psxSendRecv(0x42);      // get data
-    psxSendRecv(0xff);      // should return 0x5a
-    b1 = psxSendRecv(0xff); // buttons byte 1
-    b2 = psxSendRecv(0xff); // buttons byte 2
+    psxSendRecv(0x01);       // wake up
+    psxSendRecv(0x42);       // get data
+    psxSendRecv(0xff);       // should return 0x5a
+    b1 = psxSendRecv(0xff);  // buttons byte 1
+    b2 = psxSendRecv(0xff);  // buttons byte 2
     psxDone();
     b2b1 = (b2 << 8) | b1;
 #else
-    if (gpio_get_level(CONFIG_HW_GPIO_UP) == 1)
-        b2b1 -= PSX_UP;
-    if (gpio_get_level(CONFIG_HW_GPIO_DOWN) == 1)
-        b2b1 -= PSX_DOWN;
-    if (gpio_get_level(CONFIG_HW_GPIO_RIGHT) == 1)
-        b2b1 -= PSX_RIGHT;
-    if (gpio_get_level(CONFIG_HW_GPIO_LEFT) == 1)
-        b2b1 -= PSX_LEFT;
-    if (gpio_get_level(CONFIG_HW_GPIO_SELECT) == 1)
-        b2b1 -= PSX_SELECT;
-    if (gpio_get_level(CONFIG_HW_GPIO_START) == 1)
-        b2b1 -= PSX_START;
-    if (gpio_get_level(CONFIG_HW_GPIO_B) == 1)
-        b2b1 -= B_BUTTON;
-    if (gpio_get_level(CONFIG_HW_GPIO_A) == 1)
-        b2b1 -= A_BUTTON;
-    if (gpio_get_level(CONFIG_HW_GPIO_TURBO_B) == 1)
-        b2b1 -= TURBO_B_BUTTON;
-    if (gpio_get_level(CONFIG_HW_GPIO_TURBO_A) == 1)
-        b2b1 -= TURBO_A_BUTTON;
-    if (gpio_get_level(CONFIG_HW_GPIO_MENU) == 1)
-        b2b1 -= MENU_BUTTON;
-    if (gpio_get_level(CONFIG_HW_GPIO_POWER) == 1)
-        b2b1 -= POWER_BUTTON;
+    if (gpio_get_level(CONFIG_HW_GPIO_UP) == 1) b2b1 -= PSX_UP;
+    if (gpio_get_level(CONFIG_HW_GPIO_DOWN) == 1) b2b1 -= PSX_DOWN;
+    if (gpio_get_level(CONFIG_HW_GPIO_RIGHT) == 1) b2b1 -= PSX_RIGHT;
+    if (gpio_get_level(CONFIG_HW_GPIO_LEFT) == 1) b2b1 -= PSX_LEFT;
+    if (gpio_get_level(CONFIG_HW_GPIO_SELECT) == 1) b2b1 -= PSX_SELECT;
+    if (gpio_get_level(CONFIG_HW_GPIO_START) == 1) b2b1 -= PSX_START;
+    if (gpio_get_level(CONFIG_HW_GPIO_B) == 1) b2b1 -= B_BUTTON;
+    if (gpio_get_level(CONFIG_HW_GPIO_A) == 1) b2b1 -= A_BUTTON;
+    if (gpio_get_level(CONFIG_HW_GPIO_TURBO_B) == 1) b2b1 -= TURBO_B_BUTTON;
+    if (gpio_get_level(CONFIG_HW_GPIO_TURBO_A) == 1) b2b1 -= TURBO_A_BUTTON;
+    if (gpio_get_level(CONFIG_HW_GPIO_MENU) == 1) b2b1 -= MENU_BUTTON;
+    if (gpio_get_level(CONFIG_HW_GPIO_POWER) == 1) b2b1 -= POWER_BUTTON;
 #endif
     if (isMenuPressed(b2b1) && inpDelay == 0) {
         showMenu = !showMenu;
@@ -224,24 +207,15 @@ int psxReadInput() {
     }
     if (showMenu) {
         if (inpDelay == 0) {
-            if (isUpPressed(b2b1) && volume < 4)
-                volume++;
-            if (isDownPressed(b2b1) && volume > 0)
-                volume--;
-            if (isRightPressed(b2b1) && bright < 4)
-                bright++;
-            if (isLeftPressed(b2b1) && bright > 0)
-                bright--;
-            if (isAPressed(b2b1))
-                setYStretch(1 - getYStretch());
-            if (isBPressed(b2b1))
-                setXStretch(1 - getXStretch());
-            if (isTurboAPressed(b2b1))
-                turboASpeed = (turboASpeed + 1) % MAX_TURBO;
-            if (isTurboBPressed(b2b1))
-                turboBSpeed = (turboBSpeed + 1) % MAX_TURBO;
-            if (isAnyPressed(b2b1))
-                inpDelay = 15;
+            if (isUpPressed(b2b1) && volume < 4) volume++;
+            if (isDownPressed(b2b1) && volume > 0) volume--;
+            if (isRightPressed(b2b1) && bright < 4) bright++;
+            if (isLeftPressed(b2b1) && bright > 0) bright--;
+            if (isAPressed(b2b1)) setYStretch(1 - getYStretch());
+            if (isBPressed(b2b1)) setXStretch(1 - getXStretch());
+            if (isTurboAPressed(b2b1)) turboASpeed = (turboASpeed + 1) % MAX_TURBO;
+            if (isTurboBPressed(b2b1)) turboBSpeed = (turboBSpeed + 1) % MAX_TURBO;
+            if (isAnyPressed(b2b1)) inpDelay = 15;
         }
     } else {
         // ! todo: Implement sleep mode for PSX that also works with GPIO code here, disabled for now.
@@ -280,7 +254,7 @@ int psxReadInput() {
             if ((turboACounter % (turboASpeed * 2)) == 0) {
                 b2b1 -= A_BUTTON;
             }
-            turboACounter = (turboACounter + 1) % TURBO_COUNTER_RESET; // 30 is the LCM of numers 1 thru 6
+            turboACounter = (turboACounter + 1) % TURBO_COUNTER_RESET;  // 30 is the LCM of numers 1 thru 6
         } else {
             turboACounter = 0;
         }
@@ -290,7 +264,7 @@ int psxReadInput() {
             if ((turboBCounter % (turboBSpeed * 2)) == 0) {
                 b2b1 -= B_BUTTON;
             }
-            turboBCounter = (turboBCounter + 1) % TURBO_COUNTER_RESET; // 30 is the LCM of numers 1 thru 6
+            turboBCounter = (turboBCounter + 1) % TURBO_COUNTER_RESET;  // 30 is the LCM of numers 1 thru 6
         } else {
             turboBCounter = 0;
         }
@@ -331,29 +305,26 @@ void psxcontrollerInit() {
     int          t;
     showMenu                  = 0;
     shutdown                  = 0;
-    gpio_config_t gpioconf[2] = {
-        {.pin_bit_mask = (1 << PSX_CLK) | (1 << PSX_CMD) | (1 << PSX_ATT),
-         .mode         = GPIO_MODE_OUTPUT,
-         .pull_up_en   = GPIO_PULLUP_DISABLE,
-         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-         .intr_type    = GPIO_PIN_INTR_DISABLE},
-        {.pin_bit_mask = (1 << PSX_DAT),
-         .mode         = GPIO_MODE_INPUT,
-         .pull_up_en   = GPIO_PULLUP_ENABLE,
-         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-         .intr_type    = GPIO_PIN_INTR_DISABLE}};
+    gpio_config_t gpioconf[2] = {{.pin_bit_mask = (1 << PSX_CLK) | (1 << PSX_CMD) | (1 << PSX_ATT),
+                                  .mode         = GPIO_MODE_OUTPUT,
+                                  .pull_up_en   = GPIO_PULLUP_DISABLE,
+                                  .pull_down_en = GPIO_PULLDOWN_DISABLE,
+                                  .intr_type    = GPIO_PIN_INTR_DISABLE},
+                                 {.pin_bit_mask = (1 << PSX_DAT),
+                                  .mode         = GPIO_MODE_INPUT,
+                                  .pull_up_en   = GPIO_PULLUP_ENABLE,
+                                  .pull_down_en = GPIO_PULLDOWN_DISABLE,
+                                  .intr_type    = GPIO_PIN_INTR_DISABLE}};
     gpio_config(&gpioconf[0]);
     gpio_config(&gpioconf[1]);
 
     // Send a few dummy bytes to clean the pipes.
     psxSendRecv(0);
     psxDone();
-    for (delay = 0; delay < 500; delay++)
-        DELAY();
+    for (delay = 0; delay < 500; delay++) DELAY();
     psxSendRecv(0);
     psxDone();
-    for (delay = 0; delay < 500; delay++)
-        DELAY();
+    for (delay = 0; delay < 500; delay++) DELAY();
     // Try and detect the type of controller, so we can give the user some diagnostics.
     psxSendRecv(0x01);
     t = psxSendRecv(0x00);
