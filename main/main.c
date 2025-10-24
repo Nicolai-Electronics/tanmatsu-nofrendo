@@ -1,11 +1,15 @@
 #include <nofrendo.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include "bsp/audio.h"
 #include "bsp/device.h"
 #include "bsp/display.h"
 #include "bsp/input.h"
 #include "chakrapetchmedium.h"
 #include "display.h"
+#include "driver/i2s_common.h"
+#include "driver/i2s_std.h"
+#include "driver/i2s_types.h"
 #include "esp_err.h"
 #include "esp_lcd_types.h"
 #include "esp_log.h"
@@ -13,6 +17,7 @@
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
 #include "hal/lcd_types.h"
+#include "help.h"
 #include "icons.h"
 #include "led.h"
 #include "menu/src/menu.h"
@@ -96,26 +101,44 @@ int app_main(void) {
         message_dialog(NULL, "Error", "Failed to mount SD card", "OK");
     }
 
+    i2s_chan_handle_t i2s_handle;
+    bsp_audio_get_i2s_handle(&i2s_handle);
+
+    bool use_sd = true;
+
     while (true) {
-        if (menu_filebrowser("/int", (const char*[]){"nes"}, 1, selectedRomFilename, 256,
-                             "Select NES ROM [internal]")) {
-            break;
+        i2s_channel_disable(i2s_handle);
+        while (true) {
+            menu_filebrowser_result_t result =
+                menu_filebrowser(use_sd ? "/sd" : "/int", (const char*[]){"nes"}, 1, selectedRomFilename, 256,
+                                 use_sd ? "Select NES ROM [SD card]" : "Select NES ROM [internal]");
+            if (result == MENU_FILEBROWSER_RESULT_SELECTED) {
+                break;
+            }
+
+            if (result == MENU_FILEBROWSER_RESULT_EXIT) {
+                bsp_device_restart_to_launcher();
+            }
+
+            if (result == MENU_FILEBROWSER_RESULT_HELP) {
+                menu_help();
+            }
+
+            if (result == MENU_FILEBROWSER_RESULT_CANCEL) {
+                use_sd = !use_sd;
+            }
         }
-        if (menu_filebrowser("/sd", (const char*[]){"nes"}, 1, selectedRomFilename, 256, "Select NES ROM [SD card]")) {
-            break;
-        }
+
+        i2s_channel_enable(i2s_handle);
+
+        ESP_LOGI(TAG, "Starting Nofrendo");
+        pax_background(pax_buf, 0xFF000000);  // Black background
+        display_blit();
+
+        nofrendo_main(0, NULL);
+
+        ESP_LOGE(TAG, "Nofrendo exited");
     }
 
-    ESP_LOGI(TAG, "Starting NoFrendo");
-    pax_background(pax_buf, 0xFF000000);  // Black background
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "Starting NoFrendo...");
-    display_blit();
-
-    nofrendo_main(0, NULL);
-
-    ESP_LOGE(TAG, "NoFrendo exited");
-    pax_background(pax_buf, 0xFF000000);  // Black background
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "NoFrendo exited");
-    display_blit();
     return 0;
 }

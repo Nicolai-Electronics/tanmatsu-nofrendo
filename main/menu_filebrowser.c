@@ -1,6 +1,7 @@
 #include "menu_filebrowser.h"
 #include <dirent.h>
 #include <string.h>
+#include "bsp/device.h"
 #include "bsp/input.h"
 #include "display.h"
 #include "gui_menu.h"
@@ -16,12 +17,17 @@ static void render(menu_t* menu, pax_vec2_t position, bool partial, bool icons, 
     pax_buf_t*   buffer = display_get_pax_buffer();
     gui_theme_t* theme  = get_theme();
 
+    if (!partial) {
+        pax_background(buffer, theme->palette.color_background);
+    }
+
     if (!partial || icons) {
-        render_base_screen_statusbar(
-            buffer, theme, !partial, !partial || icons, !partial,
-            ((gui_element_icontext_t[]){{get_icon(ICON_SD), (char*)title}}), 1,
-            ((gui_element_icontext_t[]){{get_icon(ICON_ESC), "/"}, {get_icon(ICON_F1), "Back"}}), 2,
-            ((gui_element_icontext_t[]){{NULL, "↑ / ↓ | ⏎ Select"}}), 1);
+        render_base_screen_statusbar(buffer, theme, !partial, !partial || icons, !partial,
+                                     ((gui_element_icontext_t[]){{get_icon(ICON_SD), (char*)title}}), 1,
+                                     ((gui_element_icontext_t[]){{get_icon(ICON_ESC), "Switch internal / SD card"},
+                                                                 {get_icon(ICON_F1), "Quit app"},
+                                                                 {get_icon(ICON_F2), "Help"}}),
+                                     3, ((gui_element_icontext_t[]){{NULL, "↑ / ↓ | ⏎ Select"}}), 1);
     }
     menu_render(buffer, menu, position, theme, partial);
     display_blit_buffer(buffer);
@@ -55,8 +61,8 @@ static size_t populate_menu(const char* path, menu_t* menu, const char* filter[]
     return count;
 }
 
-bool menu_filebrowser(const char* in_path, const char* filter[], size_t filter_length, char* out_filename,
-                      size_t filename_size, const char* title) {
+menu_filebrowser_result_t menu_filebrowser(const char* in_path, const char* filter[], size_t filter_length,
+                                           char* out_filename, size_t filename_size, const char* title) {
     QueueHandle_t input_event_queue = NULL;
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
@@ -95,11 +101,16 @@ bool menu_filebrowser(const char* in_path, const char* filter[], size_t filter_l
                     case INPUT_EVENT_TYPE_NAVIGATION: {
                         if (event.args_navigation.state) {
                             switch (event.args_navigation.key) {
-                                case BSP_INPUT_NAVIGATION_KEY_ESC:
                                 case BSP_INPUT_NAVIGATION_KEY_F1:
+                                    return MENU_FILEBROWSER_RESULT_EXIT;
+                                    break;
+                                case BSP_INPUT_NAVIGATION_KEY_F2:
+                                    return MENU_FILEBROWSER_RESULT_HELP;
+                                    break;
+                                case BSP_INPUT_NAVIGATION_KEY_ESC:
                                 case BSP_INPUT_NAVIGATION_KEY_GAMEPAD_B:
                                     menu_free(&menu);
-                                    return false;
+                                    return MENU_FILEBROWSER_RESULT_CANCEL;
                                 case BSP_INPUT_NAVIGATION_KEY_UP:
                                     menu_navigate_previous(&menu);
                                     render(&menu, position, true, false, title);
@@ -137,7 +148,7 @@ bool menu_filebrowser(const char* in_path, const char* filter[], size_t filter_l
                                         } else {
                                             snprintf(out_filename, filename_size, "%s/%s", path, label);
                                             menu_free(&menu);
-                                            return true;  // File selected
+                                            return MENU_FILEBROWSER_RESULT_SELECTED;  // File selected
                                         }
                                     }
                                     break;
@@ -159,5 +170,5 @@ bool menu_filebrowser(const char* in_path, const char* filter[], size_t filter_l
         menu_free(&menu);
     }
 
-    return false;
+    return MENU_FILEBROWSER_RESULT_CANCEL;
 }

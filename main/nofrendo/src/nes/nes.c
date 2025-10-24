@@ -428,8 +428,11 @@ void nes_reset(int reset_type) {
 
     nes.scanline = 241;
 
-    /*gui_sendmsg(GUI_GREEN, "NES %s",
-                (HARD_RESET == reset_type) ? "powered on" : "reset");*/
+    printf("NES %s", (HARD_RESET == reset_type) ? "powered on" : "reset");
+
+    if (reset_type == SOFT_RESET) {
+        nes_poweroff();
+    }
 }
 
 void nes_destroy(nes_t** machine) {

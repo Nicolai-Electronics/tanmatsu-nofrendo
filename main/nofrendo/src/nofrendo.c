@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include "esp_log.h"
 #include "event.h"
+#include "freertos/idf_additions.h"
+#include "freertos/projdefs.h"
 #include "gui.h"
 #include "log.h"
 #include "nofconfig.h"
@@ -183,44 +185,73 @@ void main_insert(const char* filename, system_t type) {
 }
 
 int nofrendo_main(int argc, char* argv[]) {
-    /* initialize our system structure */
-    console.filename     = NULL;
-    console.nextfilename = NULL;
-    console.type         = system_unknown;
-    console.nexttype     = system_unknown;
-    console.refresh_rate = 0;
-    console.quit         = false;
+    static bool initialized = false;
 
-    if (log_init()) return -1;
+    if (!initialized) {
+        /* initialize our system structure */
+        console.filename     = NULL;
+        console.nextfilename = NULL;
+        console.type         = system_unknown;
+        console.nexttype     = system_unknown;
+        console.refresh_rate = 0;
+        console.quit         = false;
 
-    event_init();
+        if (log_init()) return -1;
+
+        event_init();
+
+        initialized = true;
+    }
 
     return osd_main(argc, argv);
 }
 
 /* This is the final leg of main() */
 int main_loop(const char* filename, system_t type) {
-    vidinfo_t video;
+    static bool initialized = false;
+    bool        first_run   = false;
 
-    /* register shutdown, in case of assertions, etc. */
-    //   atexit(shutdown_everything);
+    if (!initialized) {
+        vidinfo_t video;
 
-    if (config.open()) return -1;
+        /* register shutdown, in case of assertions, etc. */
+        //   atexit(shutdown_everything);
 
-    if (osd_init()) return -1;
+        if (config.open()) return -1;
 
-    if (gui_init()) return -1;
+        if (osd_init()) return -1;
 
-    osd_getvideoinfo(&video);
-    if (vid_init(video.default_width, video.default_height, video.driver)) return -1;
-    ESP_LOGI(TAG, "vid_init done");
+        if (gui_init()) return -1;
+
+        osd_getvideoinfo(&video);
+        if (vid_init(video.default_width, video.default_height, video.driver)) return -1;
+        ESP_LOGI(TAG, "vid_init done");
+
+        initialized = true;
+        first_run   = true;
+    }
 
     console.nextfilename = strdup(filename);
     console.nexttype     = type;
 
-    while (false == console.quit) {
-        if (internal_insert(console.nextfilename, console.nexttype)) return 1;
+    if (first_run) {
+        internal_insert(console.nextfilename, console.nexttype);
+    } else {
+        // printf("Destroying...\r\n");
+        //  nes_destroy(&console.machine.nes);
+        //  vTaskDelay(pdMS_TO_TICKS(10));
+        printf("Creating...\r\n");
+        console.machine.nes = nes_create();
+        vTaskDelay(pdMS_TO_TICKS(10));
+        printf("Inserting...\r\n");
+        nes_insertcart(console.nextfilename, console.machine.nes);
+        // vid_setmode(NES_SCREEN_WIDTH, NES_VISIBLE_HEIGHT + 20);
+        vTaskDelay(pdMS_TO_TICKS(10));
+        printf("Emulating...\r\n");
+        nes_emulate();
     }
+
+    free(console.nextfilename);
 
     return 0;
 }

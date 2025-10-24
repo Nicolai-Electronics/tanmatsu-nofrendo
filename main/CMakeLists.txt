@@ -10,6 +10,7 @@ idf_component_register(
         "message_dialog.c"
         "icons.c"
         "common/chakrapetchmedium.c"
+        "help.c"
 
         "menu/src/charData.c"
         "menu/src/charPixels.c"

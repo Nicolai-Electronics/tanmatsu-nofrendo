@@ -22,6 +22,7 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "nes.h"
 
 static const char* TAG = "kbd controller";
 
@@ -40,6 +41,7 @@ static int  bright = 13;
 // static int  inpDelay;
 // static bool shutdown;
 static bool showMenu;
+static bool quit = false;
 
 void setShowMenu(bool val) {
     showMenu = val;
@@ -47,6 +49,10 @@ void setShowMenu(bool val) {
 
 bool getShowMenu() {
     return showMenu;
+}
+
+bool getQuit() {
+    return quit;
 }
 
 // Bit0 Bit1 Bit2 Bit3 Bit4 Bit5 Bit6 Bit7
@@ -219,6 +225,10 @@ int kbToControllerState(const bool keys_pressed[]) {
         b2b1 -= PSX_START;
     }
 
+    if (keys_pressed[0x3f]) {  // 'F5' key code POWER button.
+        b2b1 -= POWER_BUTTON;
+    }
+
     return b2b1;
 }
 
@@ -231,12 +241,24 @@ int kbdReadInput() {
     while (xQueueReceive(input_event_queue, &event, pdMS_TO_TICKS(1))) {
         key_code = event.args_scancode.scancode;
         switch (event.type) {
+            case INPUT_EVENT_TYPE_NAVIGATION: {
+                if (event.args_navigation.state) {
+                    switch (event.args_navigation.key) {
+                        case BSP_INPUT_NAVIGATION_KEY_F6:
+                            showMenu = !showMenu;
+                            break;
+                        case BSP_INPUT_NAVIGATION_KEY_F5:
+                            quit = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                break;
+            }
             case INPUT_EVENT_TYPE_SCANCODE: {
                 keys_pressed[key_code & 0x7f] = (key_code & 0x80) ? false : true;
-                if (key_code == 0x40) {
-                    // Toggle show menu when the Purple diamond key is pressed (F6)
-                    showMenu = !showMenu;
-                }
             }
             default:
                 break;
