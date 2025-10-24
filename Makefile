@@ -119,7 +119,7 @@ badgelink:
 
 .PHONY: install
 install:
-	cd badgelink/tools; ./badgelink.sh appfs upload team.badge.nofrendo "NoFrendo NES emulator" 0 ../../build/tanmatsu/konsoolnes.bin
+	cd badgelink/tools; ./badgelink.sh appfs upload team.badge.nofrendo "NoFrendo NES emulator" 0 ../../build/tanmatsu/nofrendo.bin
 
 .PHONY: run
 run:
