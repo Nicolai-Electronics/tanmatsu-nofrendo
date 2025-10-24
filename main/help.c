@@ -11,7 +11,10 @@
 #include "pax_types.h"
 #include "theme.h"
 
-#define FOOTER_LEFT  ((gui_element_icontext_t[]){{get_icon(ICON_ESC), "Back"}}), 1
+#define FOOTER_LEFT                                                                                   \
+    ((gui_element_icontext_t[]){                                                                      \
+        {get_icon(ICON_ESC), "Back   (https://github.com/Nicolai-Electronics/tanmatsu-nofrendo/)"}}), \
+        1
 #define FOOTER_RIGHT NULL, 0
 
 static void render(bool partial, bool icons) {
@@ -48,19 +51,23 @@ static void render(bool partial, bool icons) {
             {NULL, "up + left and up + right"},
         };
 
-        gui_element_icontext_t lines2[10] = {
-            {get_icon(ICON_APP), "Nofrendo NES emulator"},      {NULL, "Matt Conte <zeus@ztnet.com>"},
-            {NULL, "Neil Stevens<neil @qualityassistant.com>"}, {NULL, "Firebug<firebug @cfl.rr.com>"},
-            {NULL, "Benjamin C.W.Sittler<bsittler @nmt.edu>"},  {NULL, "The Mighty Mike Master<melanson @pcisys.net>"},
-            {NULL, "Jeroen Domburg<jeroen @espressif.com>"},    {get_icon(ICON_EXTENSION), "Tanmatsu port"},
-            {NULL, "Copyright 2025 Ranzbak Badge.Team"},        {NULL, "Copyright 2025 Nicolai Electronics"},
-        };
+        gui_element_icontext_t lines2[12] = {{get_icon(ICON_APP), "Nofrendo NES emulator"},
+                                             {NULL, "Matt Conte <zeus@ztnet.com>"},
+                                             {NULL, "Neil Stevens<neil @qualityassistant.com>"},
+                                             {NULL, "Firebug<firebug @cfl.rr.com>"},
+                                             {NULL, "Benjamin C.W.Sittler<bsittler @nmt.edu>"},
+                                             {NULL, "The Mighty Mike Master<melanson @pcisys.net>"},
+                                             {NULL, "Jeroen Domburg<jeroen @espressif.com>"},
+                                             {get_icon(ICON_EXTENSION), "Tanmatsu port"},
+                                             {NULL, "Copyright 2025 Ranzbak Badge.Team"},
+                                             {NULL, "Copyright 2025 Nicolai Electronics"},
+                                             {NULL, "License: GPLv2"}};
 
         for (size_t i = 0; i < 11; i++) {
             gui_icontext_draw(buffer, &theme->header, position.x0, position.y0 + 32 * i, &lines1[i], 0, 32);
         }
 
-        for (size_t i = 0; i < 10; i++) {
+        for (size_t i = 0; i < 11; i++) {
             gui_icontext_draw(buffer, &theme->header, position.x0 + 256, position.y0 + 32 * i, &lines2[i], 0, 32);
         }
     }
