@@ -58,6 +58,12 @@ int app_main(void) {
     // Fetch the input event queue
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
+    // Display welcome message
+    pax_buf_t* pax_buf = display_get_pax_buffer();
+    pax_background(pax_buf, 0xFF000000);  // Black background
+    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "Tanmatsu Nofrendo NES Emulator");
+    display_blit();
+
     // Mount the internal FAT filesystem
     esp_vfs_fat_mount_config_t fat_mount_config = {
         .format_if_mount_failed   = false,
@@ -75,24 +81,6 @@ int app_main(void) {
 
     // Initialize icons
     load_icons();
-
-    // Display welcome message
-    pax_buf_t* pax_buf = display_get_pax_buffer();
-    pax_background(pax_buf, 0xFF000000);  // Black background
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "Tanmatsu NoFrendo NES Emulator");
-
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 2, "[START] orange triangle");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 3, "[MENU ] purple diamond");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 4, "[A    ] left shift");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 5, "[B    ] z");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 6, "[D-PAD] up/down/left/right arrows");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 7, "        / = left and up arrows");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 8, "        right shift = right and up arrows");
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 24 * 10,
-                  "[ESC  ] switch between SD card and internal storage");
-    display_blit();
-
-    vTaskDelay(pdMS_TO_TICKS(2000));
 
     // Register SD card
     res = registerSdCard();
