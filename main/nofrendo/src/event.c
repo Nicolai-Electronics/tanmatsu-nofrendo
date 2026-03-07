@@ -41,7 +41,7 @@
 #include <nesinput.h>
 #include <nesstate.h>
 
-static const char* const TAG = "event";
+//static const char* const TAG = "event";
 
 /* pointer to our current system's event handler table */
 static event_t* system_events = NULL;
@@ -280,8 +280,8 @@ static void func_event_joypad1_select(int code) {
 
 static void func_event_joypad1_up(int code) {
     if (getShowMenu()) {
-        ESP_LOGI(TAG, "Volume: %d", getVolume());
-        bsp_audio_set_volume(incVolume());
+        //ESP_LOGI(TAG, "Volume: %d", getVolume());
+        //bsp_audio_set_volume(incVolume());
     } else {
         input_event(&kb_input, code, INP_PAD_UP);
     }
@@ -289,8 +289,8 @@ static void func_event_joypad1_up(int code) {
 
 static void func_event_joypad1_down(int code) {
     if (getShowMenu()) {
-        ESP_LOGI(TAG, "Volume: %d", getVolume());
-        bsp_audio_set_volume(decVolume());
+        //ESP_LOGI(TAG, "Volume: %d", getVolume());
+        //bsp_audio_set_volume(decVolume());
     } else {
         input_event(&kb_input, code, INP_PAD_DOWN);
     }
@@ -298,8 +298,8 @@ static void func_event_joypad1_down(int code) {
 
 static void func_event_joypad1_left(int code) {
     if (getShowMenu()) {
-        ESP_LOGI(TAG, "Bright: %d", getBright());
-        bsp_display_set_backlight_brightness(decBright());
+        //ESP_LOGI(TAG, "Bright: %d", getBright());
+        //bsp_display_set_backlight_brightness(decBright());
     } else {
         input_event(&kb_input, code, INP_PAD_LEFT);
     }
@@ -307,8 +307,8 @@ static void func_event_joypad1_left(int code) {
 
 static void func_event_joypad1_right(int code) {
     if (getShowMenu()) {
-        ESP_LOGI(TAG, "Bright: %d", getBright());
-        bsp_display_set_backlight_brightness(incBright());
+        //ESP_LOGI(TAG, "Bright: %d", getBright());
+        //bsp_display_set_backlight_brightness(incBright());
     } else {
         input_event(&kb_input, code, INP_PAD_RIGHT);
     }

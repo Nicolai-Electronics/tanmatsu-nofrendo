@@ -11,4 +11,4 @@ typedef enum {
 } menu_filebrowser_result_t;
 
 menu_filebrowser_result_t menu_filebrowser(const char* path, const char* filter[], size_t filter_length,
-                                           char* out_filename, size_t filename_size, const char* title);
+                                           char* out_filename, size_t filename_size, const char* title, bool sd_available);

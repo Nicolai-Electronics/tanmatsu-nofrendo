@@ -14,7 +14,10 @@
 // limitations under the License.
 
 #include "kbdcontroller.h"
+#include "bsp/device.h"
 #include "bsp/input.h"
+#include "bsp/display.h"
+#include "bsp/audio.h"
 #include "esp_log.h"
 #include <stdio.h>
 #include "freertos/queue.h"
@@ -34,7 +37,7 @@ static QueueHandle_t input_event_queue = NULL;
 // #define DELAY() asm("nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;nop; nop; nop; nop;")
 
 static int  volume = 60;
-static int  bright = 13;
+static int  bright = 100;
 // static int  bright;
 // static int  inpDelay;
 // static bool shutdown;
@@ -153,22 +156,26 @@ int getBright() {
 }
 
 int incBright() {
-    if (bright < 13) bright++;
+    if (bright < 100) bright+=5;
+    printf("Brightness: %d\r\n", bright);
     return bright;
 }
 
 int decBright() {
-    if (bright > 3) bright--;
+    if (bright > 5) bright-=5;
+    printf("Brightness: %d\r\n", bright);
     return bright;
 }
 
 int incVolume() {
     if (volume < 100) volume += 5;
+    printf("Volume: %d\r\n", volume);
     return volume;
 }
 
 int decVolume() {
     if (volume > 0) volume -= 5;
+    printf("Volume: %d\r\n", volume);
     return volume;
 }
 
@@ -230,6 +237,8 @@ int kbToControllerState(const bool keys_pressed[]) {
     return b2b1;
 }
 
+static bool power_button_latch = false;
+
 int kbdReadInput() {
     static bsp_input_event_t event;
     static uint8_t           key_code;
@@ -248,6 +257,33 @@ int kbdReadInput() {
                         case BSP_INPUT_NAVIGATION_KEY_F5:
                             quit = true;
                             break;
+                        case BSP_INPUT_NAVIGATION_KEY_F4: {
+                            uint8_t brightness = 0;
+                            bsp_input_get_backlight_brightness(&brightness);
+                            bsp_input_set_backlight_brightness((brightness > 0) ? 0 : 100);
+                            break;
+                        }
+                        case BSP_INPUT_NAVIGATION_KEY_VOLUME_UP:
+                            if (event.args_navigation.modifiers & BSP_INPUT_MODIFIER_FUNCTION) {
+                                bsp_display_set_backlight_brightness(incBright());
+                            } else if (!nes_is_paused()) {
+                                bsp_audio_set_volume(incVolume());
+                            } else {
+                                incVolume();
+                            }
+                            break;
+                        case BSP_INPUT_NAVIGATION_KEY_VOLUME_DOWN:
+                            //if (event.args_navigation.modifiers & BSP_INPUT_MODIFIER_FUNCTION) { // Doesn't work (bug in BSP)
+                            bool fn = false;
+                            bsp_input_read_scancode(BSP_INPUT_SCANCODE_FN, &fn);
+                            if (fn) {
+                                bsp_display_set_backlight_brightness(decBright());
+                            } else if (!nes_is_paused()) {
+                                bsp_audio_set_volume(decVolume());
+                            } else {
+                                decVolume();
+                            }
+                            break;
                         default:
                             break;
                     }
@@ -257,6 +293,27 @@ int kbdReadInput() {
             }
             case INPUT_EVENT_TYPE_SCANCODE: {
                 keys_pressed[key_code & 0x7f] = (key_code & 0x80) ? false : true;
+            }
+            case INPUT_EVENT_TYPE_ACTION: {
+                switch (event.args_action.type) {
+                    case BSP_INPUT_ACTION_TYPE_POWER_BUTTON:
+                        if (event.args_action.state) {
+                            power_button_latch = true;
+                        } else if (power_button_latch) {
+                            power_button_latch = false;
+                            bsp_device_restart_to_launcher();
+                        }
+                        break;
+                    case BSP_INPUT_ACTION_TYPE_SD_CARD:
+                        // tbd
+                        break;
+                    case BSP_INPUT_ACTION_TYPE_AUDIO_JACK:
+                        bsp_audio_set_amplifier(!event.args_action.state);
+                        break;
+                    default:
+                        break;
+                }
+                break;
             }
             default:
                 break;

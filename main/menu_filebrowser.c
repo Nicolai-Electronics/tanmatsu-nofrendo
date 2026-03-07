@@ -12,8 +12,9 @@
 #include "pax_matrix.h"
 #include "pax_types.h"
 #include "theme.h"
+#include "bsp/audio.h"
 
-static void render(menu_t* menu, pax_vec2_t position, bool partial, bool icons, const char* title) {
+static void render(menu_t* menu, pax_vec2_t position, bool partial, bool icons, const char* title, bool sd_available) {
     pax_buf_t*   buffer = display_get_pax_buffer();
     gui_theme_t* theme  = get_theme();
 
@@ -24,7 +25,7 @@ static void render(menu_t* menu, pax_vec2_t position, bool partial, bool icons, 
     if (!partial || icons) {
         render_base_screen_statusbar(buffer, theme, !partial, !partial || icons, !partial,
                                      ((gui_element_icontext_t[]){{get_icon(ICON_SD_CARD), (char*)title}}), 1,
-                                     ((gui_element_icontext_t[]){{get_icon(ICON_ESC), "Switch internal / SD card"},
+                                     ((gui_element_icontext_t[]){{sd_available ? get_icon(ICON_ESC) : NULL, sd_available ? "Switch internal / SD card" : "(No SD card)"},
                                                                  {get_icon(ICON_F1), "Quit app"},
                                                                  {get_icon(ICON_F2), "Help"}}),
                                      3, ((gui_element_icontext_t[]){{NULL, "↑ / ↓ | ⏎ Select"}}), 1);
@@ -61,8 +62,10 @@ static size_t populate_menu(const char* path, menu_t* menu, const char* filter[]
     return count;
 }
 
+static bool power_button_latch = false;
+
 menu_filebrowser_result_t menu_filebrowser(const char* in_path, const char* filter[], size_t filter_length,
-                                           char* out_filename, size_t filename_size, const char* title) {
+                                           char* out_filename, size_t filename_size, const char* title, bool sd_available) {
     QueueHandle_t input_event_queue = NULL;
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
@@ -92,7 +95,7 @@ menu_filebrowser_result_t menu_filebrowser(const char* in_path, const char* filt
                 pax_buf_get_height(buffer) - footer_height - theme->menu.vertical_margin - theme->menu.vertical_padding,
         };
 
-        render(&menu, position, false, true, title);
+        render(&menu, position, false, true, title, sd_available);
         bool reload = false;
         while (!reload) {
             bsp_input_event_t event;
@@ -107,17 +110,23 @@ menu_filebrowser_result_t menu_filebrowser(const char* in_path, const char* filt
                                 case BSP_INPUT_NAVIGATION_KEY_F2:
                                     return MENU_FILEBROWSER_RESULT_HELP;
                                     break;
+                                case BSP_INPUT_NAVIGATION_KEY_F4: {
+                                    uint8_t brightness = 0;
+                                    bsp_input_get_backlight_brightness(&brightness);
+                                    bsp_input_set_backlight_brightness((brightness > 0) ? 0 : 100);
+                                    break;
+                                }
                                 case BSP_INPUT_NAVIGATION_KEY_ESC:
                                 case BSP_INPUT_NAVIGATION_KEY_GAMEPAD_B:
                                     menu_free(&menu);
                                     return MENU_FILEBROWSER_RESULT_CANCEL;
                                 case BSP_INPUT_NAVIGATION_KEY_UP:
                                     menu_navigate_previous(&menu);
-                                    render(&menu, position, true, false, title);
+                                    render(&menu, position, true, false, title, sd_available);
                                     break;
                                 case BSP_INPUT_NAVIGATION_KEY_DOWN:
                                     menu_navigate_next(&menu);
-                                    render(&menu, position, true, false, title);
+                                    render(&menu, position, true, false, title, sd_available);
                                     break;
                                 case BSP_INPUT_NAVIGATION_KEY_RETURN:
                                 case BSP_INPUT_NAVIGATION_KEY_GAMEPAD_A:
@@ -143,7 +152,7 @@ menu_filebrowser_result_t menu_filebrowser(const char* in_path, const char* filt
                                                 message_dialog(get_icon(ICON_ERROR), "Error",
                                                                "Path too long, can not navigate into directory",
                                                                "Go back");
-                                                render(&menu, position, false, true, title);
+                                                render(&menu, position, false, true, title, sd_available);
                                             }
                                         } else {
                                             snprintf(out_filename, filename_size, "%s/%s", path, label);
@@ -159,11 +168,32 @@ menu_filebrowser_result_t menu_filebrowser(const char* in_path, const char* filt
                         }
                         break;
                     }
+                    case INPUT_EVENT_TYPE_ACTION: {
+                        switch (event.args_action.type) {
+                            case BSP_INPUT_ACTION_TYPE_POWER_BUTTON:
+                                if (event.args_action.state) {
+                                    power_button_latch = true;
+                                } else if (power_button_latch) {
+                                    power_button_latch = false;
+                                    bsp_device_restart_to_launcher();
+                                }
+                                break;
+                            case BSP_INPUT_ACTION_TYPE_SD_CARD:
+                                // tbd
+                                break;
+                            case BSP_INPUT_ACTION_TYPE_AUDIO_JACK:
+                                bsp_audio_set_amplifier(!event.args_action.state);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    }
                     default:
                         break;
                 }
             } else {
-                render(&menu, position, true, true, title);
+                render(&menu, position, true, true, title, sd_available);
             }
         }
 

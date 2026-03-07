@@ -24,7 +24,6 @@
 */
 
 #include "nes.h"
-#include "emumenu.h"
 // #include "esp_err.h"
 #include <gui.h>
 #include <log.h>
@@ -43,6 +42,15 @@
 #include "nes_mmc.h"
 #include "nes_ppu.h"
 #include "nes_rom.h"
+#include "bsp/audio.h"
+#include "driver/i2s_common.h"
+#include "pax_gfx.h"
+#include "pax_matrix.h"
+#include "pax_text.h"
+#include "pax_types.h"
+#include "common/display.h"
+#include "common/theme.h"
+#include "esp_timer.h"
 
 // #include "soc/timer_group_struct.h"
 // #include "soc/timer_group_reg.h"
@@ -315,30 +323,59 @@ static void nes_renderframe(bool draw_flag) {
     nes.scanline = 0;
 }
 
-static void system_video(bool draw_menu) {
-    // /* TODO: hack */
-    // if (false == draw)
-    // {
-    //     gui_frame(false);
-    //     return;
-    // }
+static bool was_paused = false;
 
+static void show_pause(void) {
+    pax_buf_t*   buffer = display_get_pax_buffer();
+    gui_theme_t* theme  = get_theme();
+
+    pax_simple_rect(buffer, theme->palette.color_active_background, pax_buf_get_width(buffer) / 2 - 100, pax_buf_get_height(buffer) / 2 - 20, 200, 40);
+    pax_outline_rect(buffer, theme->palette.color_highlight_primary, pax_buf_get_width(buffer) / 2 - 100, pax_buf_get_height(buffer) / 2 - 20, 200, 40);
+    pax_center_text(buffer, theme->palette.color_highlight_primary, theme->footer.text_font, 16, pax_buf_get_width(buffer) / 2,
+                      pax_buf_get_height(buffer) / 2 - 8, "PAUSED");
+
+    char text[256] = "Audio volume: press volume up/down buttons\r\nDisplay brightness: hold Fn and press volume up/down buttons\r\n";
+    snprintf(&text[strlen(text)], sizeof(text) - strlen(text), "Current audio volume: %u%%\r\nCurrent display brightness: %u%%\r\n", getVolume(), getBright());
+
+    pax_simple_rect(buffer, 0xFF000000, 0, pax_buf_get_height(buffer) - 128, pax_buf_get_width(buffer), 128);
+    pax_draw_text(buffer, theme->palette.color_highlight_primary, theme->footer.text_font, 20, 90,
+                      pax_buf_get_height(buffer) - 128, text);
+
+    display_blit_buffer(buffer);
+}
+
+bool nes_is_paused(void) {
+    return nes.pause;
+}
+
+static void system_video(bool draw_menu) {
+    static int64_t prev_timer_value = 0;
     if (draw_menu == true) {
         nes.pause = true;
-        renderInGameMenuFrame(vid_getbuffer(), 0, 0);
+        if (!was_paused) {
+            was_paused = true;
+            bsp_audio_set_volume(0);
+            show_pause();
+        } else {
+            int64_t curr_timer_value = esp_timer_get_time();
+            if (prev_timer_value / 1000000 != curr_timer_value / 1000000) {
+                show_pause();
+            }
+        }
+        //renderInGameMenuFrame(vid_getbuffer(), 0, 0);
     } else {
         nes.pause = false;
+        if (was_paused) {
+            was_paused = false;
+            bsp_audio_set_volume(getVolume());
+        }
+
+        /* overlay our GUI on top of it */
+        gui_frame(true);
+
+        /* blit to screen */
+        vid_flush();
     }
-
-    /* blit the NES screen to our video surface */
-    //   vid_blit(nes.vidbuf, 0, (NES_SCREEN_HEIGHT - NES_VISIBLE_HEIGHT) / 2,
-    //            0, 0, NES_SCREEN_WIDTH, NES_VISIBLE_HEIGHT);
-
-    /* overlay our GUI on top of it */
-    gui_frame(true);
-
-    /* blit to screen */
-    vid_flush();
 
     /* grab input */
     osd_getinput();

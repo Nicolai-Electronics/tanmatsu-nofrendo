@@ -65,8 +65,8 @@ int app_main(void) {
 
     // Display welcome message
     pax_buf_t* pax_buf = display_get_pax_buffer();
-    pax_background(pax_buf, 0xFF000000);  // Black background
-    pax_draw_text(pax_buf, 0xFFFFFFFF, &chakrapetchmedium, 22, 0, 0, "Tanmatsu Nofrendo NES Emulator");
+    pax_background(pax_buf, 0xFFecdab7);  // Black background
+    pax_center_text(pax_buf, 0xFF711521, &chakrapetchmedium, 64, pax_buf_get_width(pax_buf) / 2, (pax_buf_get_height(pax_buf) / 2) - 32, "Nofrendo");
     display_blit();
 
     // Mount the internal FAT filesystem
@@ -88,23 +88,25 @@ int app_main(void) {
     load_icons();
 
     // Register SD card
+    bool sd_available = true;
     res = registerSdCard();
     if (res != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize SD card: %s", esp_err_to_name(res));
         message_dialog(NULL, "Error", "Failed to mount SD card", "OK");
+        sd_available = false;
     }
+
+    bool use_sd = sd_available;
 
     i2s_chan_handle_t i2s_handle;
     bsp_audio_get_i2s_handle(&i2s_handle);
-
-    bool use_sd = true;
 
     while (true) {
         i2s_channel_disable(i2s_handle);
         while (true) {
             menu_filebrowser_result_t result =
                 menu_filebrowser(use_sd ? "/sd" : "/int", (const char*[]){"nes"}, 1, selectedRomFilename, 256,
-                                 use_sd ? "Select NES ROM [SD card]" : "Select NES ROM [internal]");
+                                 use_sd ? "Select NES ROM [SD card]" : "Select NES ROM [internal]", sd_available);
             if (result == MENU_FILEBROWSER_RESULT_SELECTED) {
                 break;
             }
@@ -118,7 +120,7 @@ int app_main(void) {
             }
 
             if (result == MENU_FILEBROWSER_RESULT_CANCEL) {
-                use_sd = !use_sd;
+                use_sd = (sd_available) ? (!use_sd) : false;
             }
         }
 
