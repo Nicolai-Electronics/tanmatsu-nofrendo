@@ -16,7 +16,6 @@
 #include <esp_log.h>
 #include <mipi_gfx.h>
 #include <nes.h>
-#include <pretty_effect.h>
 #include <stdio.h>
 #include <string.h>
 #include "bsp/display.h"

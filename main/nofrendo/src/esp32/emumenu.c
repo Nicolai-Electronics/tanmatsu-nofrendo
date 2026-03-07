@@ -1,5 +1,4 @@
 #include <emumenu.h>
-#include <pretty_effect.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include "bitmap.h"
@@ -273,8 +272,8 @@ uint16_t renderInGameMenu(int x, int y, uint16_t x1, uint16_t y1, bool xStr, boo
             //     return (xx) < (getTurboB() * 2 - 1) ? 0xffff : 0xdddd;
             break;
         default:
-            if ((actChar < 47 || actChar > 57) &&
-                peGetPixel(actChar, ((x - x_offset) % char_width) * 2, ((y - y_offset) % char_height) * 2))
+            //if ((actChar < 47 || actChar > 57) &&
+            //    peGetPixel(actChar, ((x - x_offset) % char_width) * 2, ((y - y_offset) % char_height) * 2))
                 retval = 0xFFFF;
             break;
     }

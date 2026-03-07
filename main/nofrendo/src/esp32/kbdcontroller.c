@@ -16,8 +16,6 @@
 #include "kbdcontroller.h"
 #include "bsp/input.h"
 #include "esp_log.h"
-// #include "freertos/FreeRTOS.h"
-#include <pretty_effect.h>
 #include <stdio.h>
 #include "freertos/queue.h"
 #include "freertos/semphr.h"

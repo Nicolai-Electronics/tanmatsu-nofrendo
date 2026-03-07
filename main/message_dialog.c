@@ -16,8 +16,7 @@
 #include "pax_types.h"
 #include "sdcard.h"
 #include "sdkconfig.h"
-#if defined(CONFIG_BSP_TARGET_TANMATSU) || defined(CONFIG_BSP_TARGET_KONSOOL) || \
-    defined(CONFIG_BSP_TARGET_HACKERHOTEL_2026)
+#if defined(CONFIG_BSP_TARGET_TANMATSU)
 #include "bsp/tanmatsu.h"
 #include "tanmatsu_coprocessor.h"
 #endif
@@ -38,8 +37,7 @@ static gui_element_icontext_t battery_indicator(void) {
     bsp_power_battery_information_t information = {0};
     bsp_power_get_battery_information(&information);
 
-#if defined(CONFIG_BSP_TARGET_TANMATSU) || defined(CONFIG_BSP_TARGET_KONSOOL) || \
-    defined(CONFIG_BSP_TARGET_HACKERHOTEL_2026)
+#if defined(CONFIG_BSP_TARGET_TANMATSU)
     tanmatsu_coprocessor_handle_t coprocessor_handle = NULL;
     bsp_tanmatsu_coprocessor_get_handle(&coprocessor_handle);
     tanmatsu_coprocessor_pmic_faults_t faults = {0};
@@ -50,20 +48,19 @@ static gui_element_icontext_t battery_indicator(void) {
         return (gui_element_icontext_t){get_icon(ICON_BATTERY_UNKNOWN), ""};
     }
     if (information.battery_charging) {
-        return (gui_element_icontext_t){get_icon(ICON_BATTERY_CHARGING), ""};
+        return (gui_element_icontext_t){get_icon(ICON_BATTERY_BOLT), ""};
     }
 
-#if defined(CONFIG_BSP_TARGET_TANMATSU) || defined(CONFIG_BSP_TARGET_KONSOOL) || \
-    defined(CONFIG_BSP_TARGET_HACKERHOTEL_2026)
+#if defined(CONFIG_BSP_TARGET_TANMATSU)
     if (faults.watchdog || faults.chrg_input || faults.chrg_thermal || faults.chrg_safety || faults.batt_ovp ||
         faults.ntc_cold || faults.ntc_hot) {
-        return (gui_element_icontext_t){get_icon(ICON_BATTERY_ERROR), ""};
+        return (gui_element_icontext_t){get_icon(ICON_BATTERY_ALERT), ""};
     }
 #endif
 
     // snprintf(percentage_buffer, sizeof(percentage_buffer), "%3u%%", (uint8_t)information.remaining_percentage);
     if (information.remaining_percentage >= 98) {
-        return (gui_element_icontext_t){get_icon(ICON_BATTERY_7), percentage_buffer};
+        return (gui_element_icontext_t){get_icon(ICON_BATTERY_FULL), percentage_buffer};
     }
     if (information.remaining_percentage >= 84) {
         return (gui_element_icontext_t){get_icon(ICON_BATTERY_6), percentage_buffer};

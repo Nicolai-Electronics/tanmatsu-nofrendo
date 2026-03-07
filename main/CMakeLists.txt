@@ -3,7 +3,6 @@ idf_component_register(
 	SRCS
 		"main.c"
         "sdcard.c"
-		"led.c"
         "common/display.c"
         "common/theme.c"
         "menu_filebrowser.c"
@@ -11,13 +10,6 @@ idf_component_register(
         "icons.c"
         "common/chakrapetchmedium.c"
         "help.c"
-
-        "menu/src/charData.c"
-        "menu/src/charPixels.c"
-        "menu/src/decode_image.c"
-        "menu/src/iconData.c"
-        "menu/src/menu.c"
-        "menu/src/pretty_effect.c"
 
         "nofrendo/src/bitmap.c"
         "nofrendo/src/config.c"
@@ -109,7 +101,6 @@ idf_component_register(
         gui
 	INCLUDE_DIRS
 		"."
-		"menu/src"
 		"nofrendo/src"
 		"nofrendo/src/nes"
 		"nofrendo/src/sndhrdw"

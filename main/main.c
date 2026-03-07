@@ -19,8 +19,6 @@
 #include "hal/lcd_types.h"
 #include "help.h"
 #include "icons.h"
-#include "led.h"
-#include "menu/src/menu.h"
 #include "menu_filebrowser.h"
 #include "message_dialog.h"
 #include "nvs_flash.h"
@@ -49,8 +47,15 @@ int app_main(void) {
     ESP_ERROR_CHECK(res);
 
     // Initialize the Board Support Package
-    ESP_ERROR_CHECK(bsp_device_initialize());
-    ESP_ERROR_CHECK(led_init());
+    const bsp_configuration_t bsp_configuration = {
+        .display =
+            {
+                .requested_color_format = LCD_COLOR_PIXEL_FORMAT_RGB565,
+                .num_fbs                = 1,
+            },
+    };
+    esp_err_t bsp_init_result = bsp_device_initialize(&bsp_configuration);
+    ESP_ERROR_CHECK(bsp_init_result);
 
     // Initialize the display
     ESP_ERROR_CHECK(display_init());

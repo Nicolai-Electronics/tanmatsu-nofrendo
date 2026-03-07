@@ -28,7 +28,6 @@
 #include <nofconfig.h>
 #include <noftypes.h>
 #include <osd.h>
-#include <pretty_effect.h>
 #include <sndhrdw/nes_apu.h>
 #include <stdint.h>
 #include <string.h>
@@ -297,7 +296,7 @@ static void videoTask(void* arg) {
     // y      = ((DEFAULT_HEIGHT - yHight) / 2);
     while (1) {
         xQueueReceive(vidQueue, &bmp, portMAX_DELAY);
-        mipi_write_frame(x, y, xWidth, yHight, (const uint8_t*)bmp->data, getXStretch(), getYStretch());
+        mipi_write_frame(x, y, xWidth, yHight, (const uint8_t*)bmp->data, false, false);
         // Reset watchdog timer
         // TODO: Watchdog reset needed?
         // TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
